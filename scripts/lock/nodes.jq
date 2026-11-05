@@ -4,9 +4,6 @@
 
 # The versions of the lock file with the shape that this file reads.
 def supported_versions: [5, 6, 7];
-# The most steps that resolving one follows may take, so that a cyclic or
-# crafted lock cannot make it loop.
-def follows_limit: 32;
 
 # is_reference: an input value, a node name or the path of a follows.
 def is_reference:
@@ -30,21 +27,10 @@ def problem($documents):
     "has version \($documents[0].version | tojson); the action reads versions \(supported_versions | join(", "))"
   else empty end;
 
-# follow($lock; $path; $budget): {node, budget}: the node that the follows
-# $path reaches from the root, spending one of $budget per step; node is null
-# when the path ends nowhere or the budget runs out.
-def follow($lock; $path; $budget):
-  reduce $path[] as $name ({node: $lock.root, budget: $budget};
-    if .node == null or .budget <= 0 then {node: null, budget: 0}
-    else
-      ($lock.nodes[.node].inputs[$name]) as $reference | (.budget - 1) as $left
-      | if $reference | type == "array" then follow($lock; $reference; $left)
-        else {node: $reference, budget: $left} end
-    end);
-
 # visit($lock; $name): adds the nodes that the inputs of $name declare and that
-# were not reached before, with their paths, to {queue, reached}. A follows
-# declares no node: it names one that another input declares.
+# were not reached before, with their paths, to {queue, reached}, so that a
+# cyclic or crafted lock cannot make it loop. A follows declares no node: it
+# names one that another input declares, and it is not resolved.
 def visit($lock; $name):
   reduce ($lock.nodes[$name].inputs // {} | to_entries[] | select(.value | type == "string")) as $input (.;
     $input.value as $node
@@ -61,17 +47,13 @@ def reached($lock):
   | until(.queue == []; .queue[0] as $name | .queue |= .[1:] | visit($lock; $name))
   | .reached;
 
-# root_input($lock): {name, node, target} of an input of the root as
-# {key, value}. An input that is a follows has no node of its own, and its
-# target is the node it follows to, or null.
-def root_input($lock):
-  if .value | type == "array" then
-    {name: .key, node: null, target: follow($lock; .value; follows_limit).node}
-  else {name: .key, node: .value, target: .value} end;
+# root_input: {name, node} of an input of the root as {key, value}. An input
+# that is a follows has no node of its own: its node is null.
+def root_input: {name: .key, node: (.value | strings // null)};
 
 # root_inputs($lock): the inputs of the root.
 def root_inputs($lock):
-  [$lock.nodes[$lock.root].inputs // {} | to_entries[] | root_input($lock)];
+  [$lock.nodes[$lock.root].inputs // {} | to_entries[] | root_input];
 
 # A name that Nix takes as an attribute without quotes.
 def identifier_form: "^[A-Za-z_][A-Za-z0-9_'-]*$";

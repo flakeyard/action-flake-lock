@@ -2,10 +2,9 @@
 # of its own is written as
 # git+https://github.com/<owner>/<repo>?ref=<ref>&rev=<40 hex digits>&shallow=1,
 # as its original attributes show. Reads the parsed lock of nodes.jq with the
-# sources of sources.jq.
+# sources of sources.jq, and rev_form of forms.jq.
 
 def github_url_form: "^https://github\\.com/[A-Za-z0-9-]+/[A-Za-z0-9._-]+$";
-def rev_form: "^[0-9a-f]{40}$";
 # The moving tag of a major version, the ref of every flakeyard input.
 def major_tag_form: "^v[0-9]+$";
 # Attributes that the form has not.
@@ -28,8 +27,8 @@ def stays_inside:
 def is_exempt:
   .original | .type == "path" and (.path | type == "string" and (startswith("/") | not) and stays_inside);
 
-# form_problems: what of the form a node has not.
-def form_problems:
+# form_problems(rev_form): what of the form a node has not.
+def form_problems(rev_form):
   .original as $original | .locked as $locked
   | (if $original.type == "git" and ($original.url | matches(github_url_form)) then empty
       else "it is not a git+https URL of a repository on github.com" end),
@@ -45,10 +44,10 @@ def flakeyard_problems:
   | if .original.ref | matches(major_tag_form) then empty
     else "its ref is not the major tag vX of a flakeyard repository" end;
 
-# pin_form_findings: a finding for each input of the root that is not in the
-# form.
-def pin_form_findings:
+# pin_form_findings(rev_form): a finding for each input of the root that is not
+# in the form.
+def pin_form_findings(rev_form):
   .nodes[] | select(.parent == null and (is_exempt | not))
-  | [form_problems, flakeyard_problems] as $problems
+  | [form_problems(rev_form), flakeyard_problems] as $problems
   | select($problems != [])
   | finding(.attribute; "\(.attribute) is not pinned as \(pin_form): \($problems | join("; ")).");
