@@ -3,8 +3,100 @@
 A composite GitHub Action that checks `flake.lock` of flakeyard repositories and
 of projects generated from flakeyard templates.
 
-The action is not released yet; its usage is described here with the first
-release.
+It fails when the `rev` of a flakeyard input is not the commit of an immutable
+release, when two nodes lock the same source, or when an input of the root is
+not pinned in the form of [FY-0016][fy-0016]. It reads only the lock file and
+evaluates only its own flake, so it runs before the project's flake is evaluated
+([FY-0017][fy-0017]).
+
+## Usage
+
+```yaml
+jobs:
+  flake:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@<commit> # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: flakeyard/action-setup-nix@<commit> # vX.Y.Z
+      - uses: flakeyard/action-flake-lock@<commit> # vX.Y.Z
+      - run: nix flake check --no-update-lock-file
+```
+
+Reference the action by full commit SHA, as above. It has no outputs: it
+succeeds, or fails with every problem of the lock in the job summary and as
+annotations of the lock file, at most 10 of them and then one that says how many
+more the summary has. It has no warn-only mode.
+
+## Inputs
+
+- `path` (default `flake.lock`): the lock file, relative to the workspace. Its
+  real path must be a regular file inside the workspace.
+- `allow-duplicates` (default empty): normalized sources that may be locked more
+  than once, one per line, such as `github.com/nixos/nixpkgs` or
+  `github.com/<owner>/<repo>?dir=<dir>`. A second nixpkgs for a tool that is
+  broken on the stable branch ([FY-0026][fy-0026]) goes here.
+- `pin-form` (default `true`): `false` switches the pin form rule off.
+- `github-token` (default `github.token`): reads the releases of flakeyard
+  repositories through the GraphQL API. It needs no permissions; it is
+  validated, masked and given only to the step that looks up releases.
+
+## Rules
+
+The rules are those of [ADR-0001][adr-0001]. A flakeyard input is a node whose
+locked source is a repository of the owner `flakeyard` on `github.com`, in any
+case.
+
+- **Release**, always on: the `rev` of every flakeyard input is the commit of
+  the tag of an immutable GitHub release `vX.Y.Z`, and its `ref`, when set, is
+  `vX` of that major version or exactly that `vX.Y.Z`. A violation names the
+  newest valid release of the major version and its commit. An input whose
+  releases could not be looked up is reported apart, as "Could not verify", and
+  fails the run as well. Releases are looked up once per repository, for at most
+  50 repositories.
+- **Duplicates**, always on: two distinct nodes with the same normalized source,
+  also at the same `rev`, unless `allow-duplicates` lists it. Sources are taken
+  from `locked` in the forms `github:`, `git+https`, `git+ssh`, `ssh://git@` and
+  `https://github.com/<owner>/<repo>/archive/...`; host, owner and repository
+  are compared in lower case without `.git` and a trailing `/`, and `dir` is
+  part of the source. Other sources, such as GitLab, sourcehut, FlakeHub, other
+  tarballs, `path` and indirect ones, are skipped. When exactly one input of the
+  root has the source, the message has the `follows` lines that fix it.
+- **Pin form**, on unless `pin-form` is `false`: every input of the root with a
+  node of its own is written as
+  `git+https://github.com/<owner>/<repo>?ref=<ref>&rev=<40 hex digits>&shallow=1`,
+  with `original.rev` equal to `locked.rev` and without `submodules`, `lfs` and
+  `allRefs`; the `ref` of a flakeyard input is `vX`. Relative `path:` inputs
+  inside the repository are exempt.
+
+The action reads lock files of versions 5, 6 and 7, and fails on any other
+version and on a missing lock file.
+
+## Runner requirements
+
+- A GitHub-hosted Linux runner on x86_64 or arm64, such as `ubuntu-24.04` or
+  `ubuntu-24.04-arm`, on `github.com`. Other runners and GitHub Enterprise
+  Server are rejected before anything is built.
+- `nix` on `PATH` with the experimental features `nix-command` and `flakes`,
+  such as from [action-setup-nix][action-setup-nix]. The action does not install
+  Nix. Determinate Nix and Lix are not tested.
+- `git` and `bash` of the runner.
+
+The action builds `jq` and `gh` from its own [`flake.nix`](flake.nix), whose
+only input is nixpkgs, with `--no-update-lock-file`, and runs them by their
+store paths; it never writes `$GITHUB_PATH`. The first run on a runner fetches
+that nixpkgs.
+
+## Versioning
+
+The public API is the inputs, the absence of outputs, the permissions of the
+token, the runners and the rules of [ADR-0001][adr-0001]. Tightening any rule is
+a major release. A new nixpkgs of the root flake, which Renovate proposes once a
+month, is a patch release, since it changes the tools that the action runs. See
+[VERSIONING][versioning].
 
 ## Development
 
@@ -18,12 +110,14 @@ none of them: `formatting` (nixfmt), `shell` (shellcheck and shfmt) and `unit`
 nix flake check --no-update-lock-file ./dev
 ```
 
-The repository checks itself with [`test.yaml`](.github/workflows/test.yaml):
-the job `tools` builds every package of the root flake on x86_64 and arm64
-runners, and [workflow-check][workflow-check] builds the checks of `./dev`,
-checks the pull request title, `renovate.json` and the release behind its preset
-tag, and reports `check / required`. Before a pull request, run actionlint,
-zizmor, prettier, markdownlint, typos and `reuse lint`.
+The repository checks itself with [`test.yaml`](.github/workflows/test.yaml) on
+x86_64 and arm64 runners: the job `tools` builds every package of the root flake
+and checks that each yields one store path, the job `action` runs the action on
+a lock that passes and on one that breaks every rule, and
+[workflow-check][workflow-check] builds the checks of `./dev`, checks the pull
+request title, `renovate.json` and the release behind its preset tag, and
+reports `check / required`. Before a pull request, run actionlint, zizmor,
+prettier, markdownlint, typos and `reuse lint`.
 
 [`maintenance.yaml`](.github/workflows/maintenance.yaml) checks every week that
 the nixpkgs branch recorded in [`nixpkgs-eol`](nixpkgs-eol) is still supported
@@ -44,16 +138,29 @@ yet. Until they are:
 
 - actionlint, zizmor, prettier, markdownlint, typos and REUSE run locally before
   every pull request; the atoms will provide them.
+- The CI of this repository uses workflow-check 0.1.x, which does not run this
+  action yet; the job `action` runs it on its own fixtures instead.
+  workflow-check adopts the action in its first pull request after the first
+  release ([workflow-check ADR-0002][wc-adr-0002]).
 
 ## License
 
 [MIT](LICENSE).
 
+[action-setup-nix]: https://github.com/flakeyard/action-setup-nix
+[adr-0001]: docs/adr/records/0001-check-flake-lock.md
+[versioning]: https://github.com/flakeyard/.github/blob/main/VERSIONING.md
+[wc-adr-0002]:
+  https://github.com/flakeyard/workflow-check/blob/main/docs/adr/records/0002-check-flake-lock.md
 [workflow-check]: https://github.com/flakeyard/workflow-check
 [workflow-release]: https://github.com/flakeyard/workflow-release
 [workflow-scorecard]: https://github.com/flakeyard/workflow-scorecard
 [fy-0022]:
   https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0022-bootstrap.md
+[fy-0016]:
+  https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0016-pin-form.md
+[fy-0017]:
+  https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0017-atom-contract.md
 [fy-0026]:
   https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0026-stable-nixpkgs.md
 [fy-0030]:

@@ -1,0 +1,23 @@
+{
+  "nodes": {
+    "a,b:c%25\r\n::warning::x": {
+      "locked": {
+        "type": "github",
+        "owner": "o",
+        "repo": "r",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "original": {
+        "type": "github",
+        "owner": "o",
+        "repo": "r",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    "root": {
+      "inputs": { "a,b:c%25\r\n::warning::x": "a,b:c%25\r\n::warning::x" }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

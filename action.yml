@@ -1,0 +1,71 @@
+name: Check flake.lock
+description: >-
+  Checks a flake.lock: flakeyard inputs are released, no source is locked
+  twice, and the inputs of the root are pinned in the form of flakeyard.
+inputs:
+  path:
+    description: The lock file, relative to the workspace.
+    default: flake.lock
+  allow-duplicates:
+    description: >-
+      Normalized sources that may be locked more than once, one per line, such
+      as github.com/nixos/nixpkgs or github.com/<owner>/<repo>?dir=<dir>.
+    default: ""
+  pin-form:
+    description: >-
+      Check that every input of the root is pinned as
+      git+https://github.com/<owner>/<repo>?ref=<ref>&rev=<commit>&shallow=1.
+      false switches the check off.
+    default: "true"
+  github-token:
+    description: >-
+      Token for reading the releases of flakeyard repositories; it needs no
+      permissions.
+    default: ${{ github.token }}
+# Steps use the runner's bash in privileged mode (-p), which reads no BASH_ENV
+# and imports no functions or shell options, and run-step.sh gives the scripts
+# only the variables they read, so that earlier steps of the job cannot inject
+# code through them. Variables of the dynamic loader, such as LD_PRELOAD, still
+# reach the first bash of every step: GitHub does not block them. Only the step
+# that looks up releases gets the token.
+runs:
+  using: composite
+  steps:
+    # The other steps need the runner's /usr/bin/bash, which only Linux has.
+    - name: Check the operating system
+      if: runner.os != 'Linux'
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/scripts/step/unsupported-os.sh"
+
+    - name: Check the runner and inputs
+      shell: /usr/bin/bash --noprofile --norc -p -e -o pipefail {0}
+      env:
+        LOCK_PATH: ${{ inputs.path }}
+        ALLOW_DUPLICATES: ${{ inputs.allow-duplicates }}
+        PIN_FORM: ${{ inputs.pin-form }}
+      run: /usr/bin/bash -p "$GITHUB_ACTION_PATH/scripts/run-step.sh" check
+
+    - name: Build the tools
+      shell: /usr/bin/bash --noprofile --norc -p -e -o pipefail {0}
+      run: /usr/bin/bash -p "$GITHUB_ACTION_PATH/scripts/run-step.sh" tools
+
+    - name: Parse the lock file
+      shell: /usr/bin/bash --noprofile --norc -p -e -o pipefail {0}
+      env:
+        LOCK_PATH: ${{ inputs.path }}
+        ALLOW_DUPLICATES: ${{ inputs.allow-duplicates }}
+        PIN_FORM: ${{ inputs.pin-form }}
+      run: /usr/bin/bash -p "$GITHUB_ACTION_PATH/scripts/run-step.sh" parse
+
+    - name: Look up the releases
+      shell: /usr/bin/bash --noprofile --norc -p -e -o pipefail {0}
+      env:
+        TOKEN: ${{ inputs.github-token }}
+      run: /usr/bin/bash -p "$GITHUB_ACTION_PATH/scripts/run-step.sh" releases
+
+    - name: Report
+      shell: /usr/bin/bash --noprofile --norc -p -e -o pipefail {0}
+      env:
+        LOCK_PATH: ${{ inputs.path }}
+        PIN_FORM: ${{ inputs.pin-form }}
+      run: /usr/bin/bash -p "$GITHUB_ACTION_PATH/scripts/run-step.sh" report
