@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Stub of nix for tests of the tools step.
+#
+# "build FLAGS path:DIR#PACKAGE" is appended to $CALLS and prints the lines of
+# $FIXTURES/nix-PACKAGE, the store paths of PACKAGE; it fails when that file
+# is missing, and when FLAGS are not those the action must pass. Other
+# commands are not supported. The stub uses builtins only: it runs with the
+# PATH of the runner.
+set -euo pipefail
+
+readonly FLAGS='--no-link --print-out-paths --no-update-lock-file'
+readonly INSTALLABLE_RE='^path:/.+#([a-z]+)$'
+
+# stub_error MESSAGE: fail as the stub, not as Nix.
+stub_error() {
+  echo "stub nix: $1" >&2
+  exit 2
+}
+
+# build INSTALLABLE: print the store paths of the package of INSTALLABLE.
+build() {
+  local installable=$1 outputs line
+  [[ $installable =~ $INSTALLABLE_RE ]] || stub_error "unsupported installable $installable"
+  outputs=$FIXTURES/nix-${BASH_REMATCH[1]}
+  if [[ ! -f $outputs ]]; then
+    echo "error: flake does not provide attribute '${BASH_REMATCH[1]}'" >&2
+    exit 1
+  fi
+  while IFS= read -r line; do printf '%s\n' "$line"; done <"$outputs"
+}
+
+[[ ${1-} == build ]] || stub_error "unsupported: $*"
+echo "nix $*" >>"$CALLS"
+[[ "${*:2:3}" == "$FLAGS" ]] || stub_error "build without $FLAGS: $*"
+(($# == 5)) || stub_error "build of more than one installable: $*"
+build "$5"
