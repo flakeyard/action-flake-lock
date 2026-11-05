@@ -44,3 +44,11 @@ lock_problem() {
     echo "The lock file $path is not a regular file."
   fi
 }
+
+# A GitHub token as GitHub issues them; nothing else is printed or passed.
+# shellcheck disable=SC2034 # used by step/releases.sh
+readonly TOKEN_FORM='^[A-Za-z0-9_.-]+$'
+# The name of a repository as GitHub allows it. It needs a character other
+# than a dot: ".." or "." would change the path of an API call.
+# shellcheck disable=SC2034 # used by step/releases.sh
+readonly REPOSITORY_NAME_FORM='^[A-Za-z0-9._-]*[A-Za-z0-9_-][A-Za-z0-9._-]*$'

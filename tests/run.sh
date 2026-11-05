@@ -14,6 +14,11 @@ source "$root/tests/lib/case.sh"
 source "$root/tests/lib/checks.sh"
 # shellcheck source=lib/fixtures/locks.sh
 source "$root/tests/lib/fixtures/locks.sh"
+# shellcheck source=lib/fixtures/responses.sh
+source "$root/tests/lib/fixtures/responses.sh"
+
+# Retries of the GitHub API do not wait in tests.
+export API_RETRY_DELAY=0
 
 for suite in "$root"/tests/unit/**/*.sh; do
   # shellcheck source=/dev/null
