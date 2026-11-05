@@ -73,11 +73,24 @@ def root_input($lock):
 def root_inputs($lock):
   [$lock.nodes[$lock.root].inputs // {} | to_entries[] | root_input($lock)];
 
-# node($lock; $name; $at): a node with its path; parent is null for an input
-# of the root.
+# A name that Nix takes as an attribute without quotes.
+def identifier_form: "^[A-Za-z_][A-Za-z0-9_'-]*$";
+
+# nix_attribute: a name as an attribute of Nix, quoted unless it is an
+# identifier.
+def nix_attribute:
+  if test(identifier_form) then . else tojson | gsub("\\$\\{"; "\\${") end;
+
+# input_attribute: the attribute of flake.nix that sets an input path, such as
+# inputs.a.inputs.b.
+def input_attribute: map("inputs.\(nix_attribute)") | join(".");
+
+# node($lock; $name; $at): a node with its path, also as the attribute of
+# flake.nix; parent is null for an input of the root.
 def node($lock; $name; $at):
   $lock.nodes[$name] as $node
-  | {name: $name, path: $at.path, locked: $node.locked, original: $node.original}
+  | {name: $name, path: $at.path, attribute: ($at.path | input_attribute)}
+  + {locked: $node.locked, original: $node.original}
   + {parent: (if $at.parent == $lock.root then null else $at.parent end)};
 
 # parsed($lock): what the rules read: the version, the inputs of the root and

@@ -1,0 +1,193 @@
+{
+  "nodes": {
+    "good": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/NixOS/nixpkgs",
+        "ref": "nixos-26.05",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/NixOS/nixpkgs",
+        "ref": "nixos-26.05",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "github-type": {
+      "locked": {
+        "type": "github",
+        "owner": "o",
+        "repo": "github-type",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "original": {
+        "type": "github",
+        "owner": "o",
+        "repo": "github-type",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    "no-ref": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/o/no-ref",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/o/no-ref",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "no-rev": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/o/no-rev",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/o/no-rev",
+        "ref": "main",
+        "shallow": true
+      }
+    },
+    "rev-mismatch": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/o/rev-mismatch",
+        "ref": "main",
+        "rev": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/o/rev-mismatch",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "not-shallow": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/o/not-shallow",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": false
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/o/not-shallow",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": false
+      }
+    },
+    "submodules": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/o/submodules",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true,
+        "submodules": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/o/submodules",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true,
+        "submodules": true
+      }
+    },
+    "flakeyard-exact": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "ref": "v1.2.3",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "ref": "v1.2.3",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "flakeyard-major": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-b",
+        "ref": "v1",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-b",
+        "ref": "v1",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "local": {
+      "locked": { "type": "path", "path": "./sub" },
+      "original": { "type": "path", "path": "./sub" }
+    },
+    "outside": {
+      "locked": { "type": "path", "path": "sub/../../x" },
+      "original": { "type": "path", "path": "sub/../../x" }
+    },
+    "absolute": {
+      "locked": { "type": "path", "path": "/abs" },
+      "original": { "type": "path", "path": "/abs" }
+    },
+    "git-file": {
+      "locked": {
+        "type": "git",
+        "url": "file:///home/o/r",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "file:///home/o/r",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "root": {
+      "inputs": {
+        "good": "good",
+        "github-type": "github-type",
+        "no-ref": "no-ref",
+        "no-rev": "no-rev",
+        "rev-mismatch": "rev-mismatch",
+        "not-shallow": "not-shallow",
+        "submodules": "submodules",
+        "flakeyard-exact": "flakeyard-exact",
+        "flakeyard-major": "flakeyard-major",
+        "local": "local",
+        "outside": "outside",
+        "absolute": "absolute",
+        "git-file": "git-file",
+        "follows": ["good"]
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
