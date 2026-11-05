@@ -2,7 +2,7 @@
 # The life of one test: its name, its directory with a copy of the action and
 # a fake runner, and the counts of passed and failed tests. Source this file;
 # it expects root, the repository's directory.
-# shellcheck disable=SC2034 # work, action and env_vars are used by checks.sh
+# shellcheck disable=SC2034 # work, action, state and env_vars are used by checks.sh
 
 : "${root:?}"
 failed=0 passed=0 current="" work=""
@@ -72,6 +72,8 @@ copy_action() {
 setup() {
   work=$(mktemp -d)
   action=$work/action
+  # STATE_DIR of lib/env.sh: the files that the steps share.
+  state=$work/temp/action-flake-lock
   copy_action
   mkdir -p "$work/workspace" "$work/temp" "$work/home" "$work/fixtures"
   : >"$work/calls"

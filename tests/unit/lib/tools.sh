@@ -1,14 +1,12 @@
 # shellcheck shell=bash
 # Tests of scripts/lib/tools.sh; the builds are tested with step/tools.sh.
-# shellcheck disable=SC2154 # work comes from setup.
-
-readonly RECORDED_TOOLS=action-flake-lock/tools
+# shellcheck disable=SC2154 # work and state come from setup.
 
 setup
-mkdir -p "$work/store/jq/bin" "$work/temp/$RECORDED_TOOLS"
+mkdir -p "$work/store/jq/bin" "$state/tools"
 printf '#!/bin/sh\n' >"$work/store/jq/bin/jq"
 chmod +x "$work/store/jq/bin/jq"
-printf '%s\n' "$work/store/jq" >"$work/temp/$RECORDED_TOOLS/jq"
+printf '%s\n' "$work/store/jq" >"$state/tools/jq"
 run_lib "tools: tool prints the executable" ok "env.sh tools.sh" tool jq
 expect stdout "$work/store/jq/bin/jq"
 finish
@@ -19,7 +17,7 @@ expect stdout ""
 finish
 
 setup
-mkdir -p "$work/temp/$RECORDED_TOOLS"
-printf '%s\n' "$work/store/jq" >"$work/temp/$RECORDED_TOOLS/jq"
+mkdir -p "$state/tools"
+printf '%s\n' "$work/store/jq" >"$state/tools/jq"
 run_lib "tools: tool fails when the executable is missing" fail "env.sh tools.sh" tool jq
 finish
