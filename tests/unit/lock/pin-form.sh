@@ -1,6 +1,6 @@
 # shellcheck shell=bash
 # Tests of scripts/lock/pin-form.jq, through step/parse.sh.
-# shellcheck disable=SC2154 # work comes from setup.
+# shellcheck disable=SC2154 # state comes from setup.
 
 readonly PIN_FORM='git+https://github.com/<owner>/<repo>?ref=<ref>&rev=<commit>&shallow=1'
 readonly NOT_GITHUB_GIT='it is not a git+https URL of a repository on github.com'
@@ -32,7 +32,7 @@ setup
 given_tools
 given_lock pin-form
 run "pin-form: off" ok step/parse.sh PIN_FORM=false
-[[ -z $current || ! -e $work/temp/action-flake-lock/findings/pin-form.json ]] \
+[[ -z $current || ! -e $state/findings/pin-form.json ]] \
   || report "pin form was checked: $(findings pin-form)"
 finish
 

@@ -16,6 +16,9 @@ export PATH=$SYSTEM_PATH LC_ALL=C
 
 # shellcheck disable=SC2034 # used by the steps
 ACTION_DIR=$(cd -- "${BASH_SOURCE[0]%/*}/../.." && pwd)
+# The modules of jq that the steps run.
+# shellcheck disable=SC2034 # used by the steps
+LOCK_MODULES=$ACTION_DIR/scripts/lock
 # What a step leaves for the next steps of the same run of the action: the
 # parsed lock, and the findings of each rule in a file named after it.
 # shellcheck disable=SC2034 # used by the steps

@@ -1,6 +1,6 @@
 # shellcheck shell=bash
 # Tests of scripts/step/tools.sh and scripts/lib/tools.sh, with the nix stub.
-# shellcheck disable=SC2154 # work and action come from setup.
+# shellcheck disable=SC2154 # work, action and state come from setup.
 
 # fake_package NAME [PATH...]: the nix stub builds the package NAME to PATH,
 # by default one store path with an executable bin/NAME.
@@ -18,7 +18,7 @@ fake_package() {
 
 # expect_recorded NAME PATH: the step recorded PATH as the store path of NAME.
 expect_recorded() {
-  local name=$1 path=$2 file=$work/temp/action-flake-lock/tools/$1
+  local name=$1 path=$2 file=$state/tools/$1
   [[ -z $current ]] || [[ -f $file && $(<"$file") == "$path" ]] \
     || report "recorded for $name: '$(cat "$file" 2>/dev/null)', expected '$path'"
 }
@@ -53,10 +53,10 @@ expect no-calls
 finish
 
 setup
-mkdir -p "$work/temp/action-flake-lock"
-touch "$work/temp/action-flake-lock/lock.json"
+mkdir -p "$state"
+touch "$state/lock.json"
 fake_package jq
 fake_package gh
 run "tools: starts the files of the steps afresh" ok step/tools.sh
-[[ -z $current || ! -e $work/temp/action-flake-lock/lock.json ]] || report "lock.json of an earlier run is left"
+[[ -z $current || ! -e $state/lock.json ]] || report "lock.json of an earlier run is left"
 finish

@@ -2,14 +2,14 @@
 # The life of one test: its name, its directory with a copy of the action and
 # a fake runner, and the counts of passed and failed tests. Source this file;
 # it expects root, the repository's directory.
-# shellcheck disable=SC2034 # work, action and env_vars are used by checks.sh
+# shellcheck disable=SC2034 # work, action, state and env_vars are used by checks.sh
 
 : "${root:?}"
 failed=0 passed=0 current="" work=""
 
 # The tools of the runner that the scripts may run, without the nix, gh and
 # jq of the host: the scripts must use the tools of the action.
-readonly RUNNER_TOOLS=(bash env cat cp grep mkdir mktemp mv rm realpath sleep wc)
+readonly RUNNER_TOOLS=(bash env cat grep mkdir mktemp rm realpath sleep wc)
 # The jq of the host, for the tests and for the store of the nix stub.
 HOST_JQ=$(command -v jq)
 readonly HOST_JQ
@@ -72,6 +72,8 @@ copy_action() {
 setup() {
   work=$(mktemp -d)
   action=$work/action
+  # STATE_DIR of lib/env.sh: the files that the steps share.
+  state=$work/temp/action-flake-lock
   copy_action
   mkdir -p "$work/workspace" "$work/temp" "$work/home" "$work/fixtures"
   : >"$work/calls"
