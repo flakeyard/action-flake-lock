@@ -1,0 +1,263 @@
+{
+  "nodes": {
+    "good": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "ref": "v1",
+        "rev": "1111111111111111111111111111111111111111",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "ref": "v1",
+        "rev": "1111111111111111111111111111111111111111",
+        "shallow": true
+      }
+    },
+    "exact": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "ref": "v1.1.0",
+        "rev": "1111111111111111111111111111111111111111",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "ref": "v1.1.0",
+        "rev": "1111111111111111111111111111111111111111",
+        "shallow": true
+      }
+    },
+    "second-page": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "ref": "v0",
+        "rev": "9999999999999999999999999999999999999999",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "ref": "v0",
+        "rev": "9999999999999999999999999999999999999999",
+        "shallow": true
+      }
+    },
+    "no-ref": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "rev": "0000000000000000000000000000000000000000",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "rev": "0000000000000000000000000000000000000000",
+        "shallow": true
+      }
+    },
+    "wrong-exact": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "ref": "v1.0.0",
+        "rev": "1111111111111111111111111111111111111111",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "ref": "v1.0.0",
+        "rev": "1111111111111111111111111111111111111111",
+        "shallow": true
+      }
+    },
+    "unreleased": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "ref": "v1",
+        "rev": "dddddddddddddddddddddddddddddddddddddddd",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "ref": "v1",
+        "rev": "dddddddddddddddddddddddddddddddddddddddd",
+        "shallow": true
+      }
+    },
+    "mutable": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "ref": "v1",
+        "rev": "3333333333333333333333333333333333333333",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "ref": "v1",
+        "rev": "3333333333333333333333333333333333333333",
+        "shallow": true
+      }
+    },
+    "draft": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "ref": "v1",
+        "rev": "4444444444444444444444444444444444444444",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "ref": "v1",
+        "rev": "4444444444444444444444444444444444444444",
+        "shallow": true
+      }
+    },
+    "other-major": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "ref": "v2",
+        "rev": "1111111111111111111111111111111111111111",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "ref": "v2",
+        "rev": "1111111111111111111111111111111111111111",
+        "shallow": true
+      }
+    },
+    "bad-ref": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "ref": "main",
+        "rev": "1111111111111111111111111111111111111111",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "ref": "main",
+        "rev": "1111111111111111111111111111111111111111",
+        "shallow": true
+      }
+    },
+    "shouty": {
+      "locked": {
+        "type": "git",
+        "url": "ssh://git@github.com/FlakeYard/Atom-B.git",
+        "ref": "v1",
+        "rev": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@github.com/FlakeYard/Atom-B.git",
+        "ref": "v1",
+        "rev": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "shallow": true
+      }
+    },
+    "only-mutable": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-c",
+        "ref": "v1",
+        "rev": "cccccccccccccccccccccccccccccccccccccccc",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-c",
+        "ref": "v1",
+        "rev": "cccccccccccccccccccccccccccccccccccccccc",
+        "shallow": true
+      }
+    },
+    "gone": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-gone",
+        "ref": "v1",
+        "rev": "0000000000000000000000000000000000000000",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-gone",
+        "ref": "v1",
+        "rev": "0000000000000000000000000000000000000000",
+        "shallow": true
+      }
+    },
+    "utils": {
+      "inputs": { "atom-a": "atom-a" },
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/numtide/utils",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/numtide/utils",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "atom-a": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "ref": "v1",
+        "rev": "1111111111111111111111111111111111111111",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "ref": "v1",
+        "rev": "1111111111111111111111111111111111111111",
+        "shallow": true
+      }
+    },
+    "root": {
+      "inputs": {
+        "good": "good",
+        "exact": "exact",
+        "second-page": "second-page",
+        "no-ref": "no-ref",
+        "wrong-exact": "wrong-exact",
+        "unreleased": "unreleased",
+        "mutable": "mutable",
+        "draft": "draft",
+        "other-major": "other-major",
+        "bad-ref": "bad-ref",
+        "shouty": "shouty",
+        "only-mutable": "only-mutable",
+        "gone": "gone",
+        "utils": "utils"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

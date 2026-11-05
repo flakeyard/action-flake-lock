@@ -9,7 +9,7 @@ failed=0 passed=0 current="" work=""
 
 # The tools of the runner that the scripts may run, without the nix, gh and
 # jq of the host: the scripts must use the tools of the action.
-readonly RUNNER_TOOLS=(bash env cat cp mkdir mktemp mv rm realpath sleep wc)
+readonly RUNNER_TOOLS=(bash env cat cp grep mkdir mktemp mv rm realpath sleep wc)
 # The jq of the host, for the tests and for the store of the nix stub.
 HOST_JQ=$(command -v jq)
 readonly HOST_JQ
@@ -83,5 +83,6 @@ setup() {
     RUNNER_TEMP="$work/temp" GITHUB_WORKSPACE="$work/workspace"
     GITHUB_SERVER_URL=https://github.com GITHUB_STEP_SUMMARY="$work/summary"
     LOCK_PATH=flake.lock PIN_FORM=true ALLOW_DUPLICATES=
+    API_RETRY_DELAY="${API_RETRY_DELAY-}"
   )
 }
