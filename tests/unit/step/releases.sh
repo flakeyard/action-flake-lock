@@ -35,7 +35,7 @@ expect_findings release 8
 while IFS='|' read -r input message; do
   expect_finding release "inputs.$input of flakeyard/$message"
 done <<CASES
-wrong-exact|atom-a: its ref v1.0.0 is not the tag of the release of its rev, v1.1.0. The newest release of v1 is v1.1.0 at $(c 1).
+wrong-exact|atom-a: its ref v1.0.0 is not the tag of a release of its rev, v1.1.0. The newest release of v1 is v1.1.0 at $(c 1).
 unreleased|atom-a: its rev $(c d) is not the commit of an immutable release v1.Y.Z. The newest release of v1 is v1.1.0 at $(c 1).
 mutable|atom-a: its rev $(c 3) is not the commit of an immutable release v1.Y.Z. The newest release of v1 is v1.1.0 at $(c 1).
 draft|atom-a: its rev $(c 4) is not the commit of an immutable release v1.Y.Z. The newest release of v1 is v1.1.0 at $(c 1).
@@ -104,4 +104,29 @@ finish_quietly
 run "releases: no flakeyard input, no lookup" ok step/releases.sh TOKEN="$TOKEN"
 expect no-calls
 expect_findings release 0
+finish
+
+# --- several releases of one commit -------------------------------
+
+# refs_lock REF...: a lock with an input refN of flakeyard/atom-s at the
+# commit $(c a) for each REF.
+refs_lock() {
+  jq -n --arg rev "$(c a)" '
+    [$ARGS.positional | to_entries[] | {name: "ref\(.key)", ref: .value}] as $inputs
+    | {version: 7, root: "root", nodes: ({root: {inputs: ($inputs | map({(.name): .name}) | add)}}
+      + ($inputs | map({(.name): {
+          locked: {type: "git", url: "https://github.com/flakeyard/atom-s", ref: .ref, rev: $rev},
+          original: {type: "git", url: "https://github.com/flakeyard/atom-s", ref: .ref, rev: $rev}}}) | add))}' \
+    --args "$@" >"$work/workspace/flake.lock"
+}
+
+setup
+given_tools
+refs_lock v1.2.4 v1.2.3 v1.2.5
+run "releases: parse refs of one commit" ok step/parse.sh
+finish_quietly
+releases_of atom-s "v1.2.3=$(c a)" "v1.2.4=$(c a)"
+run "releases: a ref may be any release tag of its commit" ok step/releases.sh TOKEN="$TOKEN"
+expect_findings release 1
+expect_finding release "inputs.ref2 of flakeyard/atom-s: its ref v1.2.5 is not the tag of a release of its rev, v1.2.3, v1.2.4. The newest release of v1 is v1.2.4 at $(c a)."
 finish

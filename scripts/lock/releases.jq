@@ -49,15 +49,16 @@ def newest($releases; $major):
     else "The newest release is \($newest.tag) at \($newest.commit)." end;
 
 # problem($node; $releases): what of the rule $node breaks; nothing when it
-# keeps it.
+# keeps it. Several releases may tag the commit of its rev: a ref vX.Y.Z may
+# be any of them.
 def problem($node; $releases):
   $node.locked.rev as $rev | $node.original.ref as $ref | major($ref) as $major
-  | (first($releases | of_major($major)[] | select(.commit == $rev)) // null) as $release
+  | [$releases | of_major($major)[] | select(.commit == $rev) | .tag] as $tags
   | if $ref != null and $major == null then "its ref \($ref) is neither vX nor vX.Y.Z"
     elif ($rev | type != "string" or (test(rev_form) | not)) then "its rev is not a commit of 40 hex digits"
-    elif $release == null then "its rev \($rev) is not the commit of an immutable release\(if $major then " v\($major).Y.Z" else "" end)"
-    elif $ref != null and $ref != "v\($major)" and $ref != $release.tag then
-      "its ref \($ref) is not the tag of the release of its rev, \($release.tag)"
+    elif $tags == [] then "its rev \($rev) is not the commit of an immutable release\(if $major then " v\($major).Y.Z" else "" end)"
+    elif $ref != null and $ref != "v\($major)" and (any($tags[]; . == $ref) | not) then
+      "its ref \($ref) is not the tag of a release of its rev, \($tags | join(", "))"
     else empty end;
 
 # verdict($node; $releases): a finding when $node breaks the rule.
