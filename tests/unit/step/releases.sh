@@ -14,18 +14,13 @@ releases_setup() {
   given_tools
   given_lock releases
   run "releases: parse the fixture" ok step/parse.sh
-  finish_quietly
+  prepared
   releases_of atom-a "v1.0.0=$(c 0)" "v1.1.0=$(c 1)" "v2.0.0=$(c 2)" \
     "v1.2.0=$(c 3):mutable" "v1.3.0=$(c 4):draft" "v1=$(c 5)" "nightly=$(c 6)"
   release_page atom-a 2 "v0.9.0=$(c 9)"
   releases_of atom-b "v1.0.0=$(c b)"
   transient_failures atom-b 1
   releases_of atom-c "v1.0.0=$(c c):mutable"
-}
-
-# finish_quietly: end a preparing run without counting it, unless it failed.
-finish_quietly() {
-  if [[ -n $current ]]; then current=""; fi
 }
 
 releases_setup
@@ -90,7 +85,7 @@ setup
 given_tools
 many_repositories 51
 run "releases: parse many repositories" ok step/parse.sh
-finish_quietly
+prepared
 run "releases: at most 50 repositories are looked up" ok step/releases.sh TOKEN="$TOKEN"
 [[ -z $current ]] || (($(grep -c '^graphql' "$work/calls") == 50)) || report "not 50 lookups"
 expect_finding release "Could not verify inputs.atom-9, flakeyard/atom-9: the lock has more than 50 flakeyard repositories."
@@ -100,7 +95,7 @@ setup
 given_tools
 given_lock version-7
 run "releases: parse a lock without flakeyard inputs" ok step/parse.sh
-finish_quietly
+prepared
 run "releases: no flakeyard input, no lookup" ok step/releases.sh TOKEN="$TOKEN"
 expect no-calls
 expect_findings release 0
@@ -124,7 +119,7 @@ setup
 given_tools
 refs_lock v1.2.4 v1.2.3 v1.2.5
 run "releases: parse refs of one commit" ok step/parse.sh
-finish_quietly
+prepared
 releases_of atom-s "v1.2.3=$(c a)" "v1.2.4=$(c a)"
 run "releases: a ref may be any release tag of its commit" ok step/releases.sh TOKEN="$TOKEN"
 expect_findings release 1

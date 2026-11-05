@@ -1,0 +1,39 @@
+{
+  "nodes": {
+    "nixpkgs": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/NixOS/nixpkgs",
+        "ref": "nixos-26.05",
+        "rev": "08d3a97586f6b6343b3b5e799980773629432610",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/NixOS/nixpkgs",
+        "ref": "nixos-26.05",
+        "rev": "08d3a97586f6b6343b3b5e799980773629432610",
+        "shallow": true
+      }
+    },
+    "setup": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/action-setup-nix",
+        "ref": "v0",
+        "rev": "feaa363e1aa0007d70c643731c508bb40190ce83",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/action-setup-nix",
+        "ref": "v0",
+        "rev": "feaa363e1aa0007d70c643731c508bb40190ce83",
+        "shallow": true
+      }
+    },
+    "root": { "inputs": { "nixpkgs": "nixpkgs", "setup": "setup" } }
+  },
+  "root": "root",
+  "version": 7
+}

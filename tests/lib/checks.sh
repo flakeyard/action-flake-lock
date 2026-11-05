@@ -46,6 +46,12 @@ run_lib() {
   outcome "$name" "$expected" "$status"
 }
 
+# prepared: the last run only prepared the test that follows; it is not
+# counted, but its failure is reported.
+prepared() {
+  current=""
+}
+
 # expect KIND [VALUE...]: check the last run.
 expect() {
   [[ -n $current ]] || return 0

@@ -68,6 +68,23 @@ notice() {
   printf '::notice::%s\n' "$(escape_command "$*")"
 }
 
+# escape_property TEXT: print TEXT as a property of one workflow command, such
+# as the title of an annotation: also "," and ":" end a property.
+escape_property() {
+  local text=$1
+  text=$(escape_command "$text")
+  text=${text//:/%3A}
+  text=${text//,/%2C}
+  printf '%s\n' "$text"
+}
+
+# annotate FILE TITLE MESSAGE: an error annotation of FILE, within the
+# MAX_ERRORS of the step.
+annotate() {
+  local file=$1 title=$2 message=$3
+  error_command " file=$(escape_property "$file"),title=$(escape_property "$title")" "$message"
+}
+
 # summary TEXT: append a line to the job summary.
 summary() {
   printf '%s\n' "$*" >>"${GITHUB_STEP_SUMMARY:-/dev/null}"

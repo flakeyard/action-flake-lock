@@ -58,3 +58,30 @@ run_lib "report: a failure after nine errors is the tenth" fail "$lib" nine_then
 expect errors 10
 expect message "::error::last"
 finish
+
+setup
+run_lib "report: a property ends at a comma or a colon" ok "$lib" \
+  escape_property $'a,b:c%d\r\n::x'
+expect stdout 'a%2Cb%3Ac%25d%0D%0A%3A%3Ax'
+finish
+
+setup
+run_lib "report: an annotation escapes its file, title and message" ok "$lib" \
+  annotate $'f,1:2' $'t,i:t\nle' $'m%e\r\n::warning::s'
+expect stdout '::error file=f%2C1%3A2,title=t%2Ci%3At%0Ale::m%25e%0D%0A::warning::s'
+finish
+
+# eleven_annotations: annotate eleven times, then the last annotation.
+eleven_annotations() {
+  local i
+  for i in {1..11}; do annotate f t "m$i"; done
+  flush_errors "the job summary lists all of them"
+}
+
+setup
+run_lib "report: annotations share the 10 errors of a step" ok "$lib" eleven_annotations
+expect errors 10
+expect message "title=t::m9"
+expect no-message "::m10"
+expect message "::error::2 more errors are not shown here; the job summary lists all of them."
+finish

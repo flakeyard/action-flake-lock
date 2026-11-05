@@ -1,0 +1,70 @@
+{
+  "nodes": {
+    "nixpkgs": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/NixOS/nixpkgs",
+        "ref": "nixos-26.05",
+        "rev": "08d3a97586f6b6343b3b5e799980773629432610",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/NixOS/nixpkgs",
+        "ref": "nixos-26.05",
+        "rev": "08d3a97586f6b6343b3b5e799980773629432610",
+        "shallow": true
+      }
+    },
+    "setup": {
+      "inputs": { "nixpkgs": "nixpkgs_2" },
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/action-setup-nix",
+        "ref": "v0",
+        "rev": "2b7fe64766cbe87f2cd3e614b16c1c3766d3d934",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/action-setup-nix",
+        "ref": "v0",
+        "rev": "2b7fe64766cbe87f2cd3e614b16c1c3766d3d934",
+        "shallow": true
+      }
+    },
+    "nixpkgs_2": {
+      "locked": {
+        "type": "github",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "08d3a97586f6b6343b3b5e799980773629432610"
+      },
+      "original": {
+        "type": "github",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "08d3a97586f6b6343b3b5e799980773629432610"
+      }
+    },
+    "utils": {
+      "locked": {
+        "type": "github",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "original": {
+        "type": "github",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    "root": {
+      "inputs": { "nixpkgs": "nixpkgs", "setup": "setup", "utils": "utils" }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

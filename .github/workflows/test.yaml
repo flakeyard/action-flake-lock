@@ -1,5 +1,6 @@
-# CI of this repository: the tools of the root flake on every supported
-# runner, then workflow-check, which builds the checks of dev/flake.nix.
+# CI of this repository: the tools of the root flake and the action itself on
+# every supported runner, then workflow-check, which builds the checks of
+# dev/flake.nix.
 name: test
 
 on:
@@ -38,8 +39,42 @@ jobs:
       - uses: flakeyard/action-setup-nix@feaa363e1aa0007d70c643731c508bb40190ce83 # v0.1.2
       - run: tests/ci/tools.sh
 
+  action:
+    name: Action on ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: flakeyard/action-setup-nix@feaa363e1aa0007d70c643731c508bb40190ce83 # v0.1.2
+      - name: A lock that passes
+        uses: $/
+        with:
+          path: tests/fixtures/locks/ci-pass/flake.lock
+      - id: failing
+        name: A lock that breaks every rule
+        continue-on-error: true
+        uses: $/
+        with:
+          path: tests/fixtures/locks/ci-fail/flake.lock
+      - name: Check that it failed
+        env:
+          OUTCOME: ${{ steps.failing.outcome }}
+        run: tests/ci/failed.sh
+      - name: Check the annotations of every rule
+        env:
+          TOKEN: ${{ github.token }}
+        run: tests/ci/failing.sh
+
   check:
-    needs: [tools]
+    needs: [tools, action]
     # Dispatched runs post their final status on every outcome.
     if: ${{ !cancelled() || github.event_name == 'workflow_dispatch' }}
     uses: flakeyard/workflow-check/.github/workflows/check.yaml@0a6da024486758d1f58cccd277e3a18021f3fb0c # v0.1.2

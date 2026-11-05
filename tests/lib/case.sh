@@ -61,7 +61,7 @@ redirect() {
 # runner in $sysbin.
 copy_action() {
   mkdir -p "$action"
-  cp -R "$root/scripts" "$root/flake.nix" "$root/flake.lock" "$action/"
+  cp -R "$root/scripts" "$root/action.yml" "$root/flake.nix" "$root/flake.lock" "$action/"
   redirect scripts/lib/env.sh "SYSTEM_PATH=/usr/sbin:/usr/bin:/sbin:/bin" "SYSTEM_PATH=$sysbin"
   redirect scripts/run-step.sh /usr/bin/env "$sysbin/env"
   redirect scripts/run-step.sh /usr/bin/bash "$sysbin/bash"
