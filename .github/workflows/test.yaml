@@ -1,5 +1,5 @@
-# CI of this repository: workflow-check. The repository has no jobs of its
-# own yet, so check has no needs.
+# CI of this repository: the tools of the root flake on every supported
+# runner, then workflow-check, which builds the checks of dev/flake.nix.
 name: test
 
 on:
@@ -21,7 +21,25 @@ concurrency:
         && github.event.action != 'edited' }}
 
 jobs:
+  tools:
+    name: Tools on ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: flakeyard/action-setup-nix@feaa363e1aa0007d70c643731c508bb40190ce83 # v0.1.2
+      - run: tests/ci/tools.sh
+
   check:
+    needs: [tools]
     # Dispatched runs post their final status on every outcome.
     if: ${{ !cancelled() || github.event_name == 'workflow_dispatch' }}
     uses: flakeyard/workflow-check/.github/workflows/check.yaml@0a6da024486758d1f58cccd277e3a18021f3fb0c # v0.1.2
@@ -32,6 +50,6 @@ jobs:
       statuses: write # commit statuses of dispatched runs
     with:
       needs: ${{ toJSON(needs) }}
-      # No flake yet: the checks of the atoms run locally (README, Bootstrap).
-      flake: ""
+      flake: ./dev
+      expect-checks: '["formatting","shell","unit"]'
       renovate-presets: '["flakeyard/renovate-config"]'
