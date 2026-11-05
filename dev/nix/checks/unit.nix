@@ -10,7 +10,6 @@
             nativeBuildInputs = with pkgs; [
               bash
               coreutils
-              findutils
               gnugrep
               gnused
               jq
