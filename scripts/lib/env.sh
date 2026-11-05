@@ -16,6 +16,11 @@ export PATH=$SYSTEM_PATH LC_ALL=C
 
 # shellcheck disable=SC2034 # used by the steps
 ACTION_DIR=$(cd -- "${BASH_SOURCE[0]%/*}/../.." && pwd)
-# What a step leaves for the next steps of the same run of the action.
+# What a step leaves for the next steps of the same run of the action: the
+# parsed lock, and the findings of each rule in a file named after it.
 # shellcheck disable=SC2034 # used by the steps
 STATE_DIR=${RUNNER_TEMP:?}/action-flake-lock
+# shellcheck disable=SC2034 # used by the steps
+PARSED_LOCK=$STATE_DIR/lock.json
+# shellcheck disable=SC2034 # used by the steps
+FINDINGS_DIR=$STATE_DIR/findings

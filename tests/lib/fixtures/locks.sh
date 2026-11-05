@@ -42,3 +42,24 @@ expect_parsed() {
   actual=$(parsed "$2")
   [[ $actual == "$3" ]] || report "$1: '$actual', expected '$3'"
 }
+
+# findings RULE: prints the messages of the findings of RULE, one per line.
+findings() {
+  local rule=$1
+  jq -r '.[].message' "$work/temp/action-flake-lock/findings/$rule.json"
+}
+
+# expect_finding RULE MESSAGE: RULE found a violation whose message is MESSAGE.
+expect_finding() {
+  local rule=$1 message=$2
+  [[ -z $current ]] || findings "$rule" | grep -qxF -- "$message" \
+    || report "no $rule finding '$message' in: $(findings "$rule")"
+}
+
+# expect_findings RULE COUNT: RULE found COUNT violations.
+expect_findings() {
+  local rule=$1 count=$2 actual
+  [[ -n $current ]] || return 0
+  actual=$(findings "$rule" | wc -l)
+  ((actual == count)) || report "$actual $rule findings, expected $count: $(findings "$rule")"
+}
