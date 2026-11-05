@@ -1,0 +1,104 @@
+{
+  "nodes": {
+    "github": {
+      "locked": {
+        "type": "github",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    "git-https": {
+      "locked": {
+        "type": "git",
+        "url": "https://GitHub.com/NixOS/nixpkgs.git/",
+        "ref": "nixos-26.05",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "git-ssh": {
+      "locked": {
+        "type": "git",
+        "url": "ssh://git@github.com/flakeyard/Atom-Shell",
+        "ref": "v1",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "tarball": {
+      "locked": {
+        "type": "tarball",
+        "url": "https://github.com/numtide/flake-utils/archive/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.tar.gz"
+      }
+    },
+    "dir": {
+      "locked": {
+        "type": "github",
+        "owner": "o",
+        "repo": "r",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "dir": "sub/dir"
+      }
+    },
+    "gitlab": {
+      "locked": {
+        "type": "gitlab",
+        "owner": "o",
+        "repo": "r",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    "sourcehut": {
+      "locked": {
+        "type": "git",
+        "url": "https://git.sr.ht/~o/r",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "codeload": {
+      "locked": {
+        "type": "tarball",
+        "url": "https://codeload.github.com/o/r/tar.gz/main"
+      }
+    },
+    "enterprise": {
+      "locked": {
+        "type": "github",
+        "owner": "o",
+        "repo": "r",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "host": "github.example.com"
+      }
+    },
+    "path": { "locked": { "type": "path", "path": "./sub" } },
+    "file": {
+      "locked": {
+        "type": "git",
+        "url": "file:///home/o/r",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "root": {
+      "inputs": {
+        "github": "github",
+        "git-https": "git-https",
+        "git-ssh": "git-ssh",
+        "tarball": "tarball",
+        "dir": "dir",
+        "gitlab": "gitlab",
+        "sourcehut": "sourcehut",
+        "codeload": "codeload",
+        "enterprise": "enterprise",
+        "path": "path",
+        "file": "file"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}
