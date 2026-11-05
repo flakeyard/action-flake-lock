@@ -124,9 +124,10 @@ not tested.
 
 The repository's own checks live in `dev/flake.nix` with its own lock, so they
 add nothing to what consumers fetch. The root flake's nixpkgs is updated by
-Renovate once a month with commit type `fix`, by a rule of renovate-config for
-this repository. The repository records the end of life of its branch in
-`nixpkgs-eol` and runs the weekly end-of-life job of [FY-0026][fy-0026].
+Renovate once a month with commit type `fix`, by a rule in this repository's own
+`renovate.json`, not in the renovate-config preset. The repository records the
+end of life of its branch in `nixpkgs-eol` and runs the weekly end-of-life job
+of [FY-0026][fy-0026].
 
 ### Steps
 
