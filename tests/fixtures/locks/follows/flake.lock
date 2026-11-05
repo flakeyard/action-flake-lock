@@ -1,0 +1,59 @@
+{
+  "nodes": {
+    "a": {
+      "inputs": { "x": "x", "y": ["b"] },
+      "locked": {
+        "type": "github",
+        "owner": "o",
+        "repo": "a",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "original": {
+        "type": "github",
+        "owner": "o",
+        "repo": "a",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    "b": {
+      "locked": {
+        "type": "github",
+        "owner": "o",
+        "repo": "b",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "original": {
+        "type": "github",
+        "owner": "o",
+        "repo": "b",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    "x": {
+      "inputs": { "loop": ["a", "x", "loop"], "deep": ["a", "y"] },
+      "locked": {
+        "type": "github",
+        "owner": "o",
+        "repo": "x",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "original": {
+        "type": "github",
+        "owner": "o",
+        "repo": "x",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    "root": {
+      "inputs": {
+        "a": "a",
+        "b": "b",
+        "c": ["a", "x"],
+        "d": ["a", "x", "loop"],
+        "e": ["x"]
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

@@ -12,6 +12,8 @@ root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 source "$root/tests/lib/case.sh"
 # shellcheck source=lib/checks.sh
 source "$root/tests/lib/checks.sh"
+# shellcheck source=lib/fixtures/locks.sh
+source "$root/tests/lib/fixtures/locks.sh"
 
 for suite in "$root"/tests/unit/**/*.sh; do
   # shellcheck source=/dev/null

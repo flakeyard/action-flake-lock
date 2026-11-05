@@ -1,0 +1,23 @@
+{
+  "nodes": {
+    "nixpkgs": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/NixOS/nixpkgs",
+        "ref": "nixos-26.05",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/NixOS/nixpkgs",
+        "ref": "nixos-26.05",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "root": { "inputs": { "nixpkgs": "nixpkgs" } }
+  },
+  "root": "root",
+  "version": 6
+}
