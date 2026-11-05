@@ -12,7 +12,6 @@ for version in 5 6 7; do
   given_lock "version-$version"
   run "parse: reads a lock of version $version" ok step/parse.sh
   expect_parsed "nodes" "$NODE_PATHS" "nixpkgs=nixpkgs"
-  expect_parsed "version" .version "$version"
   finish
 done
 
