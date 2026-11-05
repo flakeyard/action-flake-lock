@@ -146,3 +146,28 @@ run "check: reports every problem at once" fail step/check.sh \
   RUNNER_ENVIRONMENT=self-hosted ALLOW_DUPLICATES=x PIN_FORM=no
 expect errors 4
 finish
+
+# twelve_sources: twelve sources of allow-duplicates that are not normalized.
+twelve_sources() {
+  local i
+  for i in {1..12}; do printf 'github.com/O/r%s\n' "$i"; done
+}
+
+setup
+lock_fixture
+run "check: at most 10 errors, the last says how many more" fail step/check.sh \
+  ALLOW_DUPLICATES="$(twelve_sources)"
+expect errors 10
+expect message "Invalid source 'github.com/O/r9'"
+expect no-message "'github.com/O/r10'"
+expect message "::error::3 more errors are not shown here."
+finish
+
+setup
+lock_fixture
+run "check: ten errors are all shown" fail step/check.sh \
+  ALLOW_DUPLICATES="$(twelve_sources | head -10)"
+expect errors 10
+expect message "Invalid source 'github.com/O/r10'"
+expect no-message "more errors"
+finish

@@ -30,3 +30,31 @@ setup
 run_lib "report: the summary gets one line" ok "$lib" summary '| a | b |'
 expect summary '| a | b |'
 finish
+
+# errors_of COUNT: COUNT errors, then the last annotation.
+errors_of() {
+  local count=$1 i
+  for ((i = 1; i <= count; i++)); do error "e$i"; done
+  flush_errors "see the summary"
+}
+
+setup
+run_lib "report: eleven errors are nine and how many more" ok "$lib" errors_of 11
+expect errors 10
+expect message "::error::e9"
+expect no-message "::error::e10"
+expect message "::error::2 more errors are not shown here; see the summary."
+finish
+
+# nine_then_fail: nine errors, then a failure.
+nine_then_fail() {
+  local i
+  for i in {1..9}; do error "e$i"; done
+  fail last
+}
+
+setup
+run_lib "report: a failure after nine errors is the tenth" fail "$lib" nine_then_fail
+expect errors 10
+expect message "::error::last"
+finish

@@ -64,6 +64,7 @@ main() {
   check_allow_duplicates
   check_pin_form
   if $failed; then
+    flush_errors
     exit 1
   fi
 }
