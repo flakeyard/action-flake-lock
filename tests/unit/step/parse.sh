@@ -4,7 +4,7 @@
 
 # Each node with its path, and the root inputs with their nodes.
 readonly NODE_PATHS='[.nodes[] | "\(.name)=\(.path | join("."))"] | join(" ")'
-readonly ROOT_INPUTS='[.inputs[] | "\(.name)=\(.target)"] | join(" ")'
+readonly ROOT_INPUTS='[.inputs[] | "\(.name)=\(.node)"] | join(" ")'
 
 for version in 5 6 7; do
   setup
@@ -61,9 +61,10 @@ finish
 setup
 given_tools
 given_lock follows
-run "parse: a cyclic follows ends" ok step/parse.sh
+# x declares a as an input, a cycle; follows are not resolved.
+run "parse: a cyclic lock ends" ok step/parse.sh
 expect_parsed "nodes" "$NODE_PATHS" "a=a b=b x=a.x"
-expect_parsed "root inputs" "$ROOT_INPUTS" "a=a b=b c=x d=null e=null"
+expect_parsed "root inputs" "$ROOT_INPUTS" "a=a b=b c=null d=null e=null"
 expect_parsed "parents" '[.nodes[] | .parent] | map(. // "root") | join(" ")' "root root a"
 finish
 
