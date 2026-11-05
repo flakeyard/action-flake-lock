@@ -1,0 +1,178 @@
+{
+  "nodes": {
+    "nixpkgs": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/NixOS/nixpkgs",
+        "ref": "nixos-26.05",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/NixOS/nixpkgs",
+        "ref": "nixos-26.05",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "my.atom": {
+      "inputs": { "nixpkgs": "nixpkgs_2" },
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-shell",
+        "ref": "v1",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-shell",
+        "ref": "v1",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "nixpkgs_2": {
+      "locked": {
+        "type": "github",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    "utils-a": {
+      "inputs": { "atom-text": "atom-text" },
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/numtide/utils-a",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/numtide/utils-a",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "utils-b": {
+      "inputs": { "atom-text": "atom-text_2" },
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/numtide/utils-b",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/numtide/utils-b",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "atom-text": {
+      "locked": {
+        "type": "github",
+        "owner": "flakeyard",
+        "repo": "atom-text",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    "atom-text_2": {
+      "locked": {
+        "type": "git",
+        "url": "ssh://git@github.com/FlakeYard/atom-text.git",
+        "ref": "v1",
+        "rev": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "shallow": true
+      }
+    },
+    "p1": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/o/p",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/o/p",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "p2": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/o/P",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/o/P",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "dir-a": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/o/r",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true,
+        "dir": "a"
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/o/r",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true,
+        "dir": "a"
+      }
+    },
+    "dir-b": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/o/r",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true,
+        "dir": "b"
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/o/r",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true,
+        "dir": "b"
+      }
+    },
+    "root": {
+      "inputs": {
+        "nixpkgs": "nixpkgs",
+        "my.atom": "my.atom",
+        "utils-a": "utils-a",
+        "utils-b": "utils-b",
+        "p1": "p1",
+        "p2": "p2",
+        "dir-a": "dir-a",
+        "dir-b": "dir-b"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

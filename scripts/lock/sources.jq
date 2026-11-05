@@ -5,6 +5,9 @@
 # and a trailing /, and dir is kept. Other sources are null: they are skipped.
 
 def github_host: "github.com";
+# The owner of flakeyard inputs; fixed until a second organization is decided
+# (FY-0022).
+def flakeyard_owner: "flakeyard";
 
 # The URL of a git repository: its scheme, an optional user, its host and its
 # path.
@@ -42,12 +45,14 @@ def locked_repository:
 def source_id:
   "\(github_host)/\(.owner)/\(.repo)" + (if .dir then "?dir=\(.dir)" else "" end);
 
-# source: {owner, repo, dir, id} of a node, or null when its source is not
-# recognised.
+# source: {owner, repo, dir, id, flakeyard} of a node, or null when its
+# source is not recognised. The owner is compared in lower case.
 def source:
   (.locked // {}) as $locked
   | first($locked | objects | locked_repository) // null
-  | if . then . + {dir: ($locked.dir // null)} | . + {id: source_id} else null end;
+  | if . then
+      . + {dir: ($locked.dir // null), flakeyard: (.owner == flakeyard_owner)} | . + {id: source_id}
+    else null end;
 
 # with_sources: the parsed lock with the source of each node.
 def with_sources: .nodes |= map(. + {source: source});
