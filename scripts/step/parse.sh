@@ -29,7 +29,7 @@ readonly PARSE_PROGRAM='include "nodes"; include "sources"; parsed($lock[0]) | w
 # shellcheck disable=SC2016 # variables of jq
 readonly DUPLICATES_PROGRAM='include "duplicates"; $parsed[0] | [duplicates($allowed | split("\n"))]'
 # shellcheck disable=SC2016 # variables of jq
-readonly PIN_FORM_PROGRAM='include "pin-form"; $parsed[0] | [pin_form_findings]'
+readonly PIN_FORM_PROGRAM='include "forms"; include "pin-form"; $parsed[0] | [pin_form_findings(rev_form)]'
 
 # lock_jq LOCK PROGRAM: runs PROGRAM with the jq of the action and the modules
 # of scripts/lock, on the documents of the file LOCK as $lock; strings are
