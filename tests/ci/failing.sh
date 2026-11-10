@@ -17,7 +17,8 @@ readonly EXPECTED=(
 )
 
 # The inputs of the steps, as action.yml gives them, and its directory.
-export SHELL_LIB=${SHELL_LIB:?} TOKEN=${TOKEN:?} LOCK_PATH=$LOCK ALLOW_DUPLICATES="" PIN_FORM=true GITHUB_ACTION_PATH=$PWD
+export SHELL_LIB=${SHELL_LIB:?} TOKEN=${TOKEN:?} LOCK_PATH=$LOCK ALLOW_DUPLICATES="" PIN_FORM=true \
+  NIXPKGS_EOL=true GITHUB_ACTION_PATH=$PWD
 
 # run_lines: prints the run line of each step of action.yml that has one.
 run_lines() {

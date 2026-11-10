@@ -13,7 +13,7 @@ given_findings() {
 # no_findings: no rule found anything.
 no_findings() {
   local rule
-  for rule in duplicates pin-form release; do given_findings "$rule" '[]'; done
+  for rule in duplicates pin-form release nixpkgs-eol; do given_findings "$rule" '[]'; done
 }
 
 # findings_of COUNT: COUNT findings of pin-form as JSON.
@@ -24,6 +24,12 @@ findings_of() {
 # a_finding RULE INPUT MESSAGE: one finding as JSON.
 a_finding() {
   jq -cn --arg rule "$1" --arg input "$2" --arg message "$3" '{rule: $rule, input: $input, message: $message}'
+}
+
+# eol_findings_of COUNT LEVEL: COUNT findings of nixpkgs-eol of LEVEL as JSON.
+eol_findings_of() {
+  jq -cn --argjson count "$1" --arg level "$2" \
+    '[range(1; $count + 1) | {rule: "nixpkgs-eol", input: "inputs.n\(.)", message: "eol \(.)", level: $level}]'
 }
 
 action_setup
@@ -79,7 +85,16 @@ action_setup
 given_tools
 given_findings duplicates '[]'
 given_findings release '[]'
+given_findings nixpkgs-eol '[]'
 run "report: pin-form off has no findings" ok scripts/step/report.sh PIN_FORM=false
+finish
+
+action_setup
+given_tools
+given_findings duplicates '[]'
+given_findings pin-form '[]'
+given_findings release '[]'
+run "report: nixpkgs-eol off has no findings" ok scripts/step/report.sh NIXPKGS_EOL=false
 finish
 
 action_setup
@@ -87,6 +102,59 @@ given_tools
 given_findings duplicates '[]'
 run "report: fails when a step did not run" fail scripts/step/report.sh
 expect message "The findings of pin-form are missing: an earlier step did not run."
+finish
+
+# --- warnings and notices of the end of life ---------------------
+
+action_setup
+given_tools
+no_findings
+given_findings nixpkgs-eol '[{"rule":"nixpkgs-eol","input":"inputs.b","message":"b is not known","level":"notice"},
+  {"rule":"nixpkgs-eol","input":"inputs.a","message":"a ends soon","level":"warning"}]'
+run "report: warnings and notices pass" ok scripts/step/report.sh
+expect message "::warning file=flake.lock,title=End of life of nixpkgs%3A inputs.a::a ends soon"
+expect message "::notice file=flake.lock,title=End of life of nixpkgs%3A inputs.b::b is not known"
+expect message "::notice::flake.lock passes every check of action-flake-lock."
+expect errors 0
+expect summary '| End of life of nixpkgs (warning) | `inputs.a` | `a ends soon` |'
+expect summary '| End of life of nixpkgs (notice) | `inputs.b` | `b is not known` |'
+finish
+
+action_setup
+given_tools
+no_findings
+given_findings nixpkgs-eol "$(eol_findings_of 1 warning | jq -c --argjson ended "$(a_finding nixpkgs-eol inputs.a 'a has ended')" '. + [$ended]')"
+given_findings release "[$(a_finding release inputs.r 'r is unreleased')]"
+run "report: an end of life without level is a violation, listed before warnings" fail scripts/step/report.sh
+expect message "::error file=flake.lock,title=End of life of nixpkgs%3A inputs.a::a has ended"
+expect message "flake.lock has 2 problems; the job summary lists them."
+expect errors 2
+expect warnings 1
+[[ -z $current ]] || [[ $(tail -1 "$work/summary") == *"(warning)"* ]] || report "a warning is not last"
+finish
+
+action_setup
+given_tools
+no_findings
+given_findings nixpkgs-eol "$(eol_findings_of 12 warning)"
+run "report: at most 10 warnings, the last says how many more" ok scripts/step/report.sh
+expect warnings 10
+expect message "title=End of life of nixpkgs%3A inputs.n9::eol 9"
+expect no-message "inputs.n10::"
+expect message "::warning::3 more warnings are not shown here; the job summary lists all of them."
+expect summary '`inputs.n12`'
+finish
+
+action_setup
+given_tools
+no_findings
+given_findings pin-form "$(findings_of 12)"
+given_findings nixpkgs-eol "$(eol_findings_of 12 warning)"
+run "report: errors and warnings are counted apart" fail scripts/step/report.sh
+expect errors 10
+expect warnings 10
+expect message "::error::3 more errors are not shown here; the job summary lists all of them."
+expect message "::warning::3 more warnings are not shown here; the job summary lists all of them."
 finish
 
 # --- names of the lock -------------------------------------------

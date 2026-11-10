@@ -8,7 +8,7 @@
 
 # The steps of the action after the shell library, in their order.
 readonly SCRIPT_STEPS='["check", "tools", "parse", "releases", "report"]'
-readonly INPUTS='["path", "allow-duplicates", "pin-form", "github-token"]'
+readonly INPUTS='["path", "allow-duplicates", "pin-form", "nixpkgs-eol", "github-token"]'
 
 if require_yq action.yml; then
   action=$(load_yaml action.yml)
@@ -19,7 +19,7 @@ if require_yq action.yml; then
     '[.runs.steps[1:][] | .run | match($run).captures[0].string] == $steps' \
     --arg run "$STEP_RUN_FORM" --argjson steps "$SCRIPT_STEPS"
 
-  yaml_check "$action" "action: exactly the inputs of ADR-0001 and no outputs" \
+  yaml_check "$action" "action: exactly the inputs of ADR-0002 and no outputs" \
     '(.inputs | keys_unsorted) == $inputs and (has("outputs") | not)' --argjson inputs "$INPUTS"
 
   yaml_check "$action" "action: only the step releases gets the token" \
