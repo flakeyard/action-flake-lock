@@ -11,14 +11,14 @@ set -euo pipefail
 lib=${BASH_SOURCE[0]%/*}/../lib
 # shellcheck source-path=SCRIPTDIR source=../lib/env.sh
 source "$lib/env.sh"
-# shellcheck source-path=SCRIPTDIR source=../lib/report.sh
-source "$lib/report.sh"
-# shellcheck source-path=SCRIPTDIR source=../lib/forms.sh
-source "$lib/forms.sh"
+# shellcheck source=/dev/null
+source "$SHELL_LIB/report.sh"
 # shellcheck source-path=SCRIPTDIR source=../lib/tools.sh
 source "$lib/tools.sh"
-# shellcheck source-path=SCRIPTDIR source=../lib/api.sh
-source "$lib/api.sh"
+# shellcheck source=/dev/null
+source "$SHELL_LIB/github/api.sh"
+# shellcheck source=/dev/null
+source "$SHELL_LIB/github/forms.sh"
 
 readonly LOOKUPS=$STATE_DIR/releases.jsonl
 readonly OWNER=flakeyard
@@ -75,7 +75,7 @@ look_up() {
   local repo=$1 pages
   if [[ ! $repo =~ $REPOSITORY_NAME_FORM ]]; then
     record_error "$repo" "it is not the name of a repository"
-  elif pages=$(api_request graphql --paginate -f query="$RELEASES_QUERY" -f owner="$OWNER" -f name="$repo"); then
+  elif pages=$(api_request POST graphql --paginate -f query="$RELEASES_QUERY" -f owner="$OWNER" -f name="$repo"); then
     record_releases "$repo" <<<"$pages"
   else
     record_error "$repo" "the GitHub API failed, see the log"

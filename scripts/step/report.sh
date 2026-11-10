@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Reports every finding of the rules: all of them in a table of the job
-# summary, and as annotations of the lock file within the MAX_ERRORS of a
-# step, the last of them saying how many more the summary has. Fails when
+# summary, and as annotations of the lock file within the ANNOTATIONS_PER_KIND
+# of a step, the last of them saying how many more the summary has. Fails when
 # there is any: the action has no warn-only mode.
 #
 # Inputs (environment): LOCK_PATH, PIN_FORM.
@@ -10,8 +10,8 @@ set -euo pipefail
 lib=${BASH_SOURCE[0]%/*}/../lib
 # shellcheck source-path=SCRIPTDIR source=../lib/env.sh
 source "$lib/env.sh"
-# shellcheck source-path=SCRIPTDIR source=../lib/report.sh
-source "$lib/report.sh"
+# shellcheck source=/dev/null
+source "$SHELL_LIB/report.sh"
 # shellcheck source-path=SCRIPTDIR source=../lib/tools.sh
 source "$lib/tools.sh"
 
@@ -50,7 +50,7 @@ all_findings() {
 report_finding() {
   local title=$1 input=$2 message=$3
   summary "| $title | $(code_span "$input") | $(code_span "$message") |"
-  annotate "$LOCK_PATH" "$title: $input" "$message"
+  error "$message" "$LOCK_PATH" "$title: $input"
 }
 
 # report_all FINDINGS: the summary and the annotations of the JSON array
@@ -64,7 +64,7 @@ report_all() {
   while IFS= read -r -d '' title && IFS= read -r -d '' input && IFS= read -r -d '' message; do
     report_finding "$title" "$input" "$message"
   done < <("$jq" --raw-output0 "$TITLES_PROGRAM" <<<"$findings")
-  flush_errors "the job summary lists all of them"
+  flush "the job summary lists all of them"
 }
 
 main() {

@@ -2,7 +2,7 @@
 # Stub of gh for tests of the release rule, after tests/bin/gh of
 # workflow-check.
 #
-# "api graphql -f query=... -f owner=OWNER -f name=NAME" is appended to $CALLS
+# "api -X POST graphql -f query=... -f owner=OWNER -f name=NAME" is appended to $CALLS
 # with the variables of gh and answered from $FIXTURES/graphql-OWNER-NAME;
 # with --paginate, $FIXTURES/graphql-OWNER-NAME.2, .3 and so on are further
 # pages. A missing file is the GraphQL error of a repository that does not
@@ -52,11 +52,11 @@ answer() {
   done
 }
 
-[[ "${1-} ${2-}" == "api graphql" ]] || {
+[[ "$*" == "api -X POST graphql "* ]] || {
   echo "stub gh: unsupported: $*" >&2
   exit 2
 }
-shift 2
+shift 4
 
 paginate=false owner="" name=""
 while (($#)); do

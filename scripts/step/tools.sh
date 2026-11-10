@@ -9,8 +9,8 @@ set -euo pipefail
 lib=${BASH_SOURCE[0]%/*}/../lib
 # shellcheck source-path=SCRIPTDIR source=../lib/env.sh
 source "$lib/env.sh"
-# shellcheck source-path=SCRIPTDIR source=../lib/report.sh
-source "$lib/report.sh"
+# shellcheck source=/dev/null
+source "$SHELL_LIB/report.sh"
 # shellcheck source-path=SCRIPTDIR source=../lib/tools.sh
 source "$lib/tools.sh"
 

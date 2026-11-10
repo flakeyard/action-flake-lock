@@ -9,19 +9,13 @@ set -euo pipefail
 lib=${BASH_SOURCE[0]%/*}/../lib
 # shellcheck source-path=SCRIPTDIR source=../lib/env.sh
 source "$lib/env.sh"
-# shellcheck source-path=SCRIPTDIR source=../lib/report.sh
-source "$lib/report.sh"
+# shellcheck source=/dev/null
+source "$SHELL_LIB/report.sh"
 # shellcheck source-path=SCRIPTDIR source=../lib/forms.sh
 source "$lib/forms.sh"
 
 # The only server: GitHub Enterprise Server is not supported (ADR-0001).
 readonly GITHUB_COM=https://github.com
-
-failed=false
-problem() {
-  error "$1"
-  failed=true
-}
 
 check_server() {
   [[ ${GITHUB_SERVER_URL-} == "$GITHUB_COM" ]] \
@@ -52,8 +46,8 @@ main() {
   check_path
   check_allow_duplicates
   check_pin_form
-  if $failed; then
-    flush_errors
+  if has_problems; then
+    flush
     exit 1
   fi
 }
