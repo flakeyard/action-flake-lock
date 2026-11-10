@@ -1,8 +1,8 @@
 # shellcheck shell=bash
 # A test of a script of the action: a workspace, a fake GitHub-hosted runner
 # and a copy of the shell library whose steps run only the tools of that
-# runner. Source this file after the harness of the library; it expects root,
-# the repository's directory, and SHELL_LIB, the directory of the library.
+# runner. Source this file after the harness of the library, consumer/library.sh
+# included; it expects root, the repository's directory.
 # shellcheck disable=SC2034 # state is used by the suites.
 # shellcheck disable=SC2154 # work comes from setup of the library.
 
@@ -24,24 +24,10 @@ for tool in "${RUNNER_TOOLS[@]}"; do
   ln -s "$(command -v "$tool")" "$sysbin/$tool"
 done
 
-# redirect FILE FROM TO: replace FROM with TO in FILE; exits when FILE no
-# longer has FROM, since the scripts would then use the host.
-redirect() {
-  local file=$1 from=$2 to=$3
-  grep -qF -- "$from" "$file" || {
-    echo "tests: no '$from' in $file to redirect" >&2
-    exit 2
-  }
-  sed -i -e "s|$from|$to|g" "$file"
-}
-
-# The shell library of SHELL_LIB, whose steps get the tools of the runner in
-# $sysbin after the stubs of the library, TESTING_BIN.
+# The shell library, whose steps get the tools of the runner in $sysbin after
+# the stubs of the library, TESTING_BIN.
 shell_lib=$shared/shell-lib
-cp -R -- "${SHELL_LIB:?the tests need SHELL_LIB, the directory of the shell library}" "$shell_lib"
-chmod -R u+w -- "$shell_lib"
-redirect "$shell_lib/env.sh" "SYSTEM_PATH=/usr/sbin:/usr/bin:/sbin:/bin" \
-  "SYSTEM_PATH=$TESTING_BIN:$sysbin"
+copy_library "$shell_lib" "$TESTING_BIN:$sysbin"
 readonly shell_lib
 
 # action_setup: setup of the library, with a workspace and the variables of a
