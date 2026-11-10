@@ -62,6 +62,10 @@ jobs:
         uses: $/
         with:
           path: tests/fixtures/locks/ci-pass/flake.lock
+          # The fixture keeps its nixpkgs branch, which reaches its end of life
+          # and would then fail every scheduled run; the unit tests cover the
+          # dates.
+          nixpkgs-eol: false
       - id: failing
         name: A lock that breaks every rule
         continue-on-error: true

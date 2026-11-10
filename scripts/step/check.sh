@@ -3,7 +3,7 @@
 # problem at once. The step of the shell library before it rejects runners
 # other than GitHub-hosted Linux on X64 and ARM64.
 #
-# Inputs (environment): LOCK_PATH, ALLOW_DUPLICATES, PIN_FORM.
+# Inputs (environment): LOCK_PATH, ALLOW_DUPLICATES, PIN_FORM, NIXPKGS_EOL.
 set -euo pipefail
 # Builtins only until lib/env.sh replaces PATH, which is the job's.
 lib=${BASH_SOURCE[0]%/*}/../lib
@@ -36,16 +36,18 @@ check_allow_duplicates() {
   done < <(items "${ALLOW_DUPLICATES-}")
 }
 
-check_pin_form() {
-  [[ ${PIN_FORM-} =~ $BOOLEAN_FORM ]] \
-    || problem "pin-form must be true or false, not '${PIN_FORM-}'."
+# check_boolean INPUT VALUE: VALUE of the input INPUT is true or false.
+check_boolean() {
+  local input=$1 value=$2
+  [[ $value =~ $BOOLEAN_FORM ]] || problem "$input must be true or false, not '$value'."
 }
 
 main() {
   check_server
   check_path
   check_allow_duplicates
-  check_pin_form
+  check_boolean pin-form "${PIN_FORM-}"
+  check_boolean nixpkgs-eol "${NIXPKGS_EOL-}"
   if has_problems; then
     flush
     exit 1

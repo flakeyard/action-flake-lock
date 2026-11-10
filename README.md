@@ -5,13 +5,19 @@ of projects generated from flakeyard templates.
 
 It fails when the `rev` of a flakeyard input is not the commit of an immutable
 release, when two nodes lock the same source, or when an input of the root is
-not pinned in the form of [FY-0016][fy-0016]. It reads only the lock file and
-evaluates only its own flake, so it runs before the project's flake is evaluated
-([FY-0017][fy-0017]).
+not pinned in the form of [FY-0016][fy-0016]. It warns before the nixpkgs branch
+of the lock reaches its end of life, and fails a scheduled run after it
+([FY-0036][fy-0036]). It reads only the lock file and evaluates only its own
+flake, so it runs before the project's flake is evaluated ([FY-0017][fy-0017]).
 
 ## Usage
 
 ```yaml
+on:
+  pull_request:
+  schedule:
+    - cron: "23 4 * * 1"
+
 jobs:
   flake:
     runs-on: ubuntu-24.04
@@ -28,11 +34,14 @@ jobs:
 
 Reference the action by full commit SHA, as above. It has no outputs: it
 succeeds, or fails with every problem of the lock in the job summary and as
-annotations of the lock file. GitHub shows at most 10 error annotations per
-step, so when there are more, the tenth says how many more the summary has. It
-has no warn-only mode. Its first step runs [action-shell-lib][action-shell-lib],
-the shell library of its other steps, which fails the job on a runner that the
-action does not support.
+annotations of the lock file. Warnings and notices of the end of life are listed
+there too and do not fail it; past the end of life, only runs of the `schedule`
+event fail, so keep a weekly scheduled run, as above. GitHub shows at most 10
+annotations of each kind per step, so when there are more errors or warnings,
+the tenth of that kind says how many more the summary has. It has no warn-only
+mode. Its first step runs [action-shell-lib][action-shell-lib], the shell
+library of its other steps, which fails the job on a runner that the action does
+not support.
 
 ## Inputs
 
@@ -43,15 +52,17 @@ action does not support.
   `github.com/<owner>/<repo>?dir=<dir>`. A second nixpkgs for a tool that is
   broken on the stable branch ([FY-0026][fy-0026]) goes here.
 - `pin-form` (default `true`): `false` switches the pin form rule off.
+- `nixpkgs-eol` (default `true`): `false` switches the end of life rule off.
 - `github-token` (default `github.token`): reads the releases of flakeyard
   repositories through the GraphQL API. It needs no permissions; it is
   validated, masked and given only to the step that looks up releases.
 
 ## Rules
 
-The rules are those of [ADR-0001][adr-0001]. A flakeyard input is a node whose
-locked source is a repository of the owner `flakeyard` on `github.com`, in any
-case.
+The rules are those of [ADR-0001][adr-0001] and [ADR-0002][adr-0002]. Only the
+end of life writes warnings and notices; the other rules report violations,
+which fail the run. A flakeyard input is a node whose locked source is a
+repository of the owner `flakeyard` on `github.com`, in any case.
 
 - **Release**, always on: the `rev` of every flakeyard input is the commit of
   the tag of an immutable GitHub release `vX.Y.Z`, and its `ref`, when set, is
@@ -74,6 +85,17 @@ case.
   with `original.rev` equal to `locked.rev` and without `submodules`, `lfs` and
   `allRefs`; the `ref` of a flakeyard input is `vX`. Relative `path:` inputs
   inside the repository are exempt.
+- **End of life of nixpkgs**, on unless `nixpkgs-eol` is `false`: for every
+  input of the root whose normalized source is `github.com/nixos/nixpkgs`, the
+  branch in the `ref` of its `original` is supported. `nixos-YY.05` and
+  `nixos-YY.05-small` are supported until 31 December 20YY, `nixos-YY.11` and
+  `nixos-YY.11-small` until 30 June of the year after, both to the end of that
+  day in UTC. From 30 days before that day to its end the action warns. After
+  it, the end of life is a violation in runs of the `schedule` event and a
+  warning in runs of other events, so that it never blocks a pull request. Any
+  other branch, or no `ref`, gets a notice that its end of life is not known.
+  Every message says to switch to the next stable branch. The dates are part of
+  the action: a change of the NixOS support policy is a release of it.
 
 The action reads lock files of versions 5, 6 and 7, and fails on any other
 version and on a missing lock file.
@@ -98,10 +120,11 @@ that nixpkgs.
 ## Versioning
 
 The public API is the inputs, the absence of outputs, the permissions of the
-token, the runners and the rules of [ADR-0001][adr-0001]. Tightening any rule is
-a major release. A new nixpkgs of the root flake, which Renovate proposes once a
-month, is a patch release, since it changes the tools that the action runs. See
-[VERSIONING][versioning].
+token, the runners and the rules of [ADR-0001][adr-0001] and
+[ADR-0002][adr-0002]. Tightening any rule is a major release; before `v1.0.0`, a
+`0.y` release ([FY-0024][fy-0024]). A new nixpkgs of the root flake, which
+Renovate proposes once a month, is a patch release, since it changes the tools
+that the action runs. See [VERSIONING][versioning].
 
 ## Development
 
@@ -111,9 +134,9 @@ The root [`flake.nix`](flake.nix) holds only the tools that the action runs,
 none of them: `formatting` (nixfmt), `shell` (shellcheck and shfmt) and `unit`
 ([`tests/run.sh`](tests/run.sh)). The `unit` check fetches the shell library at
 the commit that [`action.yml`](action.yml) pins and gives it to the tests as
-`SHELL_LIB`, whose harness and stubs of `gh` and `sleep` they use. Alone,
-`tests/run.sh` needs `SHELL_LIB` set to a checkout of the library and mikefarah
-`yq`, such as from `nix shell nixpkgs#yq-go`. Run the checks with:
+`SHELL_LIB`, whose harness and stubs of `gh`, `date` and `sleep` they use.
+Alone, `tests/run.sh` needs `SHELL_LIB` set to a checkout of the library and
+mikefarah `yq`, such as from `nix shell nixpkgs#yq-go`. Run the checks with:
 
 ```sh
 nix flake check --no-update-lock-file ./dev
@@ -131,7 +154,9 @@ prettier, markdownlint, typos and `reuse lint`.
 
 [`maintenance.yaml`](.github/workflows/maintenance.yaml) checks every week that
 the nixpkgs branch recorded in [`nixpkgs-eol`](nixpkgs-eol) is still supported
-([FY-0026][fy-0026]). Renovate updates the nixpkgs of the root flake once a
+([FY-0026][fy-0026]). The file, its script and the job go once every repository
+runs a release of workflow-check with the end of life rule
+([ADR-0002][adr-0002]). Renovate updates the nixpkgs of the root flake once a
 month as a `fix`, since a new release of the action ships the new tools.
 
 [`scorecard.yaml`](.github/workflows/scorecard.yaml) runs OpenSSF Scorecard with
@@ -160,6 +185,7 @@ yet. Until they are:
 [action-setup-nix]: https://github.com/flakeyard/action-setup-nix
 [action-shell-lib]: https://github.com/flakeyard/action-shell-lib
 [adr-0001]: docs/adr/records/0001-check-flake-lock.md
+[adr-0002]: docs/adr/records/0002-end-of-life-of-nixpkgs.md
 [versioning]: https://github.com/flakeyard/.github/blob/main/VERSIONING.md
 [wc-adr-0002]:
   https://github.com/flakeyard/workflow-check/blob/main/docs/adr/records/0002-check-flake-lock.md
@@ -172,8 +198,12 @@ yet. Until they are:
   https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0016-pin-form.md
 [fy-0017]:
   https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0017-atom-contract.md
+[fy-0024]:
+  https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0024-versioning-and-support.md
 [fy-0026]:
   https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0026-stable-nixpkgs.md
+[fy-0036]:
+  https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0036-check-the-end-of-life-of-nixpkgs-in-flake-lock.md
 [fy-0030]:
   https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0030-actions-workflows-and-release-bot.md
 [fy-0034]:

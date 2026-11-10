@@ -3,10 +3,11 @@
 # inputs of the root and every node it reaches, with their sources, in
 # PARSED_LOCK. Fails on a lock file that is missing, is not JSON or has a
 # version other than 5, 6 and 7. Then applies the rules that need no API,
-# duplicates and pin form, into FINDINGS_DIR. The text of the lock reaches jq
-# only as data, never as a program.
+# duplicates, pin form and the end of life of nixpkgs, into FINDINGS_DIR. The
+# text of the lock reaches jq only as data, never as a program.
 #
-# Inputs (environment): LOCK_PATH, ALLOW_DUPLICATES, PIN_FORM.
+# Inputs (environment): LOCK_PATH, ALLOW_DUPLICATES, PIN_FORM, NIXPKGS_EOL,
+# GITHUB_EVENT_NAME.
 set -euo pipefail
 # Builtins only until lib/env.sh replaces PATH, which is the job's.
 lib=${BASH_SOURCE[0]%/*}/../lib
@@ -30,6 +31,10 @@ readonly PARSE_PROGRAM='include "nodes"; include "sources"; parsed($lock[0]) | w
 readonly DUPLICATES_PROGRAM='include "duplicates"; $parsed[0] | [duplicates($allowed | split("\n"))]'
 # shellcheck disable=SC2016 # variables of jq
 readonly PIN_FORM_PROGRAM='include "forms"; include "pin-form"; $parsed[0] | [pin_form_findings(rev_form)]'
+# The program of the end of life, with the time as $now and the event of the
+# run as $event.
+# shellcheck disable=SC2016 # variables of jq
+readonly NIXPKGS_EOL_PROGRAM='include "nixpkgs-eol"; $parsed[0] | [nixpkgs_eol_findings($now; $event)]'
 
 # lock_jq LOCK PROGRAM: runs PROGRAM with the jq of the action and the modules
 # of scripts/lock, on the documents of the file LOCK as $lock; strings are
@@ -47,19 +52,33 @@ check_lock() {
   [[ -z $problem ]] || fail "The lock file $LOCK_PATH $problem."
 }
 
-# rule_jq PROGRAM: runs PROGRAM on the parsed lock, with the lines of
-# allow-duplicates.
+# rule_jq PROGRAM [ARG...]: runs PROGRAM on the parsed lock, with the lines
+# of allow-duplicates and the options ARG of jq.
 rule_jq() {
   local program=$1
-  parsed_jq "$program" --arg allowed "$(items "${ALLOW_DUPLICATES-}")"
+  shift
+  parsed_jq "$program" --arg allowed "$(items "${ALLOW_DUPLICATES-}")" "$@"
 }
 
-# apply_rules: the findings of duplicates, and of pin form unless it is off.
+# apply_nixpkgs_eol: the findings of the end of life of nixpkgs, today, which
+# the tests set with a stub of date.
+apply_nixpkgs_eol() {
+  local now
+  now=$(date -u +%s)
+  rule_jq "$NIXPKGS_EOL_PROGRAM" --argjson now "$now" --arg event "${GITHUB_EVENT_NAME-}" \
+    >"$FINDINGS_DIR/nixpkgs-eol.json"
+}
+
+# apply_rules: the findings of duplicates, and of pin form and the end of life
+# of nixpkgs unless they are off.
 apply_rules() {
   mkdir -p -- "$FINDINGS_DIR"
   rule_jq "$DUPLICATES_PROGRAM" >"$FINDINGS_DIR/duplicates.json"
   if [[ ${PIN_FORM-} != false ]]; then
     rule_jq "$PIN_FORM_PROGRAM" >"$FINDINGS_DIR/pin-form.json"
+  fi
+  if [[ ${NIXPKGS_EOL-} != false ]]; then
+    apply_nixpkgs_eol
   fi
 }
 

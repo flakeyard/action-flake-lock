@@ -1,7 +1,8 @@
 name: Check flake.lock
 description: >-
   Checks a flake.lock: flakeyard inputs are released, no source is locked
-  twice, and the inputs of the root are pinned in the form of flakeyard.
+  twice, the inputs of the root are pinned in the form of flakeyard, and their
+  nixpkgs branches have not reached their end of life.
 inputs:
   path:
     description: The lock file, relative to the workspace.
@@ -15,6 +16,12 @@ inputs:
     description: >-
       Check that every input of the root is pinned as
       git+https://github.com/<owner>/<repo>?ref=<ref>&rev=<commit>&shallow=1.
+      false switches the check off.
+    default: "true"
+  nixpkgs-eol:
+    description: >-
+      Check the end of life of the nixpkgs branch of every input of the root:
+      a warning from 30 days before it, a failure after it in scheduled runs.
       false switches the check off.
     default: "true"
   github-token:
@@ -43,10 +50,11 @@ runs:
         LOCK_PATH: ${{ inputs.path }}
         ALLOW_DUPLICATES: ${{ inputs.allow-duplicates }}
         PIN_FORM: ${{ inputs.pin-form }}
+        NIXPKGS_EOL: ${{ inputs.nixpkgs-eol }}
       run: >-
         /usr/bin/bash -p "$SHELL_LIB/run-step.sh"
         "$GITHUB_ACTION_PATH/scripts/step" check
-        LOCK_PATH ALLOW_DUPLICATES PIN_FORM
+        LOCK_PATH ALLOW_DUPLICATES PIN_FORM NIXPKGS_EOL
         GITHUB_SERVER_URL GITHUB_WORKSPACE RUNNER_TEMP
 
     # PATH is the job's, where nix is; HOME and XDG_* are where nix keeps its
@@ -60,6 +68,8 @@ runs:
         "$GITHUB_ACTION_PATH/scripts/step" tools
         PATH HOME XDG_CONFIG_HOME XDG_CACHE_HOME RUNNER_TEMP
 
+    # GITHUB_EVENT_NAME decides whether a branch past its end of life fails
+    # the run (ADR-0002).
     - name: Parse the lock file
       shell: /usr/bin/bash --noprofile --norc -p -e -o pipefail {0}
       env:
@@ -67,10 +77,12 @@ runs:
         LOCK_PATH: ${{ inputs.path }}
         ALLOW_DUPLICATES: ${{ inputs.allow-duplicates }}
         PIN_FORM: ${{ inputs.pin-form }}
+        NIXPKGS_EOL: ${{ inputs.nixpkgs-eol }}
       run: >-
         /usr/bin/bash -p "$SHELL_LIB/run-step.sh"
         "$GITHUB_ACTION_PATH/scripts/step" parse
-        LOCK_PATH ALLOW_DUPLICATES PIN_FORM GITHUB_WORKSPACE RUNNER_TEMP
+        LOCK_PATH ALLOW_DUPLICATES PIN_FORM NIXPKGS_EOL GITHUB_EVENT_NAME
+        GITHUB_WORKSPACE RUNNER_TEMP
 
     - name: Look up the releases
       shell: /usr/bin/bash --noprofile --norc -p -e -o pipefail {0}
@@ -88,7 +100,8 @@ runs:
         SHELL_LIB: ${{ steps.lib.outputs.path }}
         LOCK_PATH: ${{ inputs.path }}
         PIN_FORM: ${{ inputs.pin-form }}
+        NIXPKGS_EOL: ${{ inputs.nixpkgs-eol }}
       run: >-
         /usr/bin/bash -p "$SHELL_LIB/run-step.sh"
         "$GITHUB_ACTION_PATH/scripts/step" report
-        LOCK_PATH PIN_FORM GITHUB_STEP_SUMMARY RUNNER_TEMP
+        LOCK_PATH PIN_FORM NIXPKGS_EOL GITHUB_STEP_SUMMARY RUNNER_TEMP
