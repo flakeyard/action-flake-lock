@@ -6,9 +6,11 @@
 
 _None._
 
-## Accepted (1)
+## Accepted (2)
 
 - [ADR-0001](records/0001-check-flake-lock.md) Check flake.lock (2026-11-05)
+- [ADR-0002](records/0002-end-of-life-of-nixpkgs.md) End of life of nixpkgs
+  (2026-11-07)
 
 ## Rejected (0)
 
