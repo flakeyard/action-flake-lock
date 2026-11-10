@@ -9,8 +9,9 @@
 failed=0 passed=0 current="" work=""
 
 # The tools of the runner that the scripts may run, without the nix, gh and
-# jq of the host: the scripts must use the tools of the action.
-readonly RUNNER_TOOLS=(bash env cat grep mkdir mktemp rm realpath sleep wc)
+# jq of the host: the scripts must use the tools of the action. sleep is the
+# stub of the shell library.
+readonly RUNNER_TOOLS=(bash env cat grep mkdir mktemp rm realpath wc)
 # The jq of the host, for the tests and for the store of the nix stub.
 HOST_JQ=$(command -v jq)
 readonly HOST_JQ
@@ -58,11 +59,13 @@ redirect() {
 }
 
 # The shell library of SHELL_LIB, whose steps get the tools of the runner in
-# $sysbin.
+# $sysbin after the stubs of the library, which run at once where the scripts
+# would wait.
 shell_lib=$shared/shell-lib
 cp -R -- "${SHELL_LIB:?the tests need SHELL_LIB, the directory of the shell library}" "$shell_lib"
 chmod -R u+w -- "$shell_lib"
-redirect "$shell_lib/env.sh" "SYSTEM_PATH=/usr/sbin:/usr/bin:/sbin:/bin" "SYSTEM_PATH=$sysbin"
+redirect "$shell_lib/env.sh" "SYSTEM_PATH=/usr/sbin:/usr/bin:/sbin:/bin" \
+  "SYSTEM_PATH=$shell_lib/internal/testing/bin:$sysbin"
 readonly shell_lib
 
 # setup: a workspace and the variables of a GitHub-hosted runner. The job PATH
@@ -73,13 +76,13 @@ setup() {
   state=$work/temp/action-flake-lock
   mkdir -p "$work/workspace" "$work/temp" "$work/home" "$work/fixtures"
   : >"$work/calls"
+  : >"$work/sleeps"
   : >"$work/summary"
   env_vars=(
     PATH="$root/tests/bin:$sysbin" HOME="$work/home" SHELL_LIB="$shell_lib"
-    FIXTURES="$work/fixtures" CALLS="$work/calls"
+    FIXTURES="$work/fixtures" CALLS="$work/calls" SLEEPS="$work/sleeps"
     RUNNER_TEMP="$work/temp" GITHUB_WORKSPACE="$work/workspace"
     GITHUB_SERVER_URL=https://github.com GITHUB_STEP_SUMMARY="$work/summary"
     LOCK_PATH=flake.lock PIN_FORM=true ALLOW_DUPLICATES=
-    API_RETRY_DELAY="${API_RETRY_DELAY-}"
   )
 }

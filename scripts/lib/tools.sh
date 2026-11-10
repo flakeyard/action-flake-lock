@@ -1,6 +1,7 @@
 # shellcheck shell=bash
 # The tools of the action, jq and gh, built from its own flake with the nix of
-# the job (ADR-0001). Sourced after env.sh and report.sh, not run.
+# the job (ADR-0001). Sourced after env.sh and the report.sh of the shell
+# library, not run.
 
 # The store path of each tool, in a file named after it.
 TOOLS_DIR=$STATE_DIR/tools
