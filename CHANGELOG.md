@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0](https://github.com/flakeyard/action-flake-lock/compare/v0.1.0...v0.2.0) (2026-11-10)
+
+
+### Features
+
+* check the end of life of nixpkgs ([#21](https://github.com/flakeyard/action-flake-lock/issues/21)) ([e2c16b5](https://github.com/flakeyard/action-flake-lock/commit/e2c16b5631618301572f1e39ba3279b51dadb79b))
+* run the steps with the shell library ([#18](https://github.com/flakeyard/action-flake-lock/issues/18)) ([fa18bee](https://github.com/flakeyard/action-flake-lock/commit/fa18bee684e325638f18cce5de0f7f98928a04cb))
+
 ## 0.1.0 (2026-11-05)
 
 
