@@ -61,13 +61,13 @@ def reached($lock):
   | until(.queue == []; .queue[0] as $name | .queue |= .[1:] | visit($lock; $name))
   | .reached;
 
-# root_input($lock): {name, node, follows, target} of an input of the root as
+# root_input($lock): {name, node, target} of an input of the root as
 # {key, value}. An input that is a follows has no node of its own, and its
 # target is the node it follows to, or null.
 def root_input($lock):
   if .value | type == "array" then
-    {name: .key, node: null, follows: .value, target: follow($lock; .value; follows_limit).node}
-  else {name: .key, node: .value, follows: null, target: .value} end;
+    {name: .key, node: null, target: follow($lock; .value; follows_limit).node}
+  else {name: .key, node: .value, target: .value} end;
 
 # root_inputs($lock): the inputs of the root.
 def root_inputs($lock):
@@ -93,12 +93,11 @@ def node($lock; $name; $at):
   + {locked: $node.locked, original: $node.original}
   + {parent: (if $at.parent == $lock.root then null else $at.parent end)};
 
-# parsed($lock): what the rules read: the version, the inputs of the root and
-# every node that the root reaches, but the root.
+# parsed($lock): what the rules read: the inputs of the root and every node
+# that the root reaches, but the root.
 def parsed($lock):
   reached($lock) as $reached
   | {
-      version: $lock.version,
       inputs: root_inputs($lock),
       nodes: [$reached | to_entries[] | select(.key != $lock.root) | node($lock; .key; .value)]
     };

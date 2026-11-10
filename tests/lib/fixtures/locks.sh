@@ -1,7 +1,7 @@
 # shellcheck shell=bash
 # Lock files and tools for the steps after step/tools.sh. Source this file
 # after case.sh.
-# shellcheck disable=SC2154 # work comes from setup.
+# shellcheck disable=SC2154 # work and state come from setup.
 
 readonly LOCK_FIXTURES=$root/tests/fixtures/locks
 
@@ -17,9 +17,9 @@ given_lock() {
 # bin/NAME is EXECUTABLE.
 given_tool() {
   local name=$1 executable=$2 store=$work/store/$1
-  mkdir -p "$store/bin" "$work/temp/action-flake-lock/tools"
+  mkdir -p "$store/bin" "$state/tools"
   ln -s "$executable" "$store/bin/$name"
-  printf '%s\n' "$store" >"$work/temp/action-flake-lock/tools/$name"
+  printf '%s\n' "$store" >"$state/tools/$name"
 }
 
 # given_tools: the step tools built the jq of the host and the gh stub.
@@ -31,7 +31,7 @@ given_tools() {
 # parsed FILTER: prints FILTER of what step/parse.sh wrote, as text.
 parsed() {
   local filter=$1
-  jq -r "$filter" "$work/temp/action-flake-lock/lock.json"
+  jq -r "$filter" "$state/lock.json"
 }
 
 # expect_parsed NAME FILTER EXPECTED: FILTER of what step/parse.sh wrote is
@@ -46,7 +46,7 @@ expect_parsed() {
 # findings RULE: prints the messages of the findings of RULE, one per line.
 findings() {
   local rule=$1
-  jq -r '.[].message' "$work/temp/action-flake-lock/findings/$rule.json"
+  jq -r '.[].message' "$state/findings/$rule.json"
 }
 
 # expect_finding RULE MESSAGE: RULE found a violation whose message is MESSAGE.

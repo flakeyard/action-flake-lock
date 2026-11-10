@@ -20,7 +20,6 @@ source "$lib/tools.sh"
 # shellcheck source-path=SCRIPTDIR source=../lib/api.sh
 source "$lib/api.sh"
 
-readonly LOCK_MODULES=$ACTION_DIR/scripts/lock
 readonly LOOKUPS=$STATE_DIR/releases.jsonl
 readonly OWNER=flakeyard
 # The upper bound of lookups in one run.
@@ -54,14 +53,6 @@ use_token() {
   echo "::add-mask::$TOKEN"
   export GH_TOKEN=$TOKEN GH_HOST=github.com
   unset GH_ENTERPRISE_TOKEN GH_REPO GH_CONFIG_DIR
-}
-
-# lock_jq PROGRAM [ARG...]: runs PROGRAM on the parsed lock, with the jq and
-# the modules of the action.
-lock_jq() {
-  local program=$1
-  shift
-  "$jq" -rn -L "$LOCK_MODULES" --slurpfile parsed "$PARSED_LOCK" "$@" "$program"
 }
 
 # record_releases REPO: records the releases of REPO from the GraphQL pages on
@@ -105,17 +96,17 @@ look_up_all() {
 
 main() {
   local gh listed repos=()
-  # The jq of the action, for lock_jq and the records.
+  # The jq of the action, for parsed_jq and the records.
   jq=$(tool jq) || fail "The tools step did not build jq."
   gh=$(tool gh) || fail "The tools step did not build gh."
   use_token
   export PATH=${gh%/*}:$PATH
-  listed=$(lock_jq "$REPOSITORIES_PROGRAM")
+  listed=$(parsed_jq "$REPOSITORIES_PROGRAM")
   [[ -z $listed ]] || mapfile -t repos <<<"$listed"
   : >"$LOOKUPS"
   look_up_all "${repos[@]}"
   mkdir -p -- "$FINDINGS_DIR"
-  lock_jq "$FINDINGS_PROGRAM" --slurpfile lookups "$LOOKUPS" >"$FINDINGS_DIR/release.json"
+  parsed_jq "$FINDINGS_PROGRAM" --slurpfile lookups "$LOOKUPS" >"$FINDINGS_DIR/release.json"
 }
 
 main "$@"

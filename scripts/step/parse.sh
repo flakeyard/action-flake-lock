@@ -19,7 +19,6 @@ source "$lib/forms.sh"
 # shellcheck source-path=SCRIPTDIR source=../lib/tools.sh
 source "$lib/tools.sh"
 
-readonly LOCK_MODULES=$ACTION_DIR/scripts/lock
 # The programs of jq, over the documents of the lock file as $lock.
 # shellcheck disable=SC2016 # variables of jq
 readonly PROBLEM_PROGRAM='include "nodes"; problem($lock)'
@@ -48,12 +47,11 @@ check_lock() {
   [[ -z $problem ]] || fail "The lock file $LOCK_PATH $problem."
 }
 
-# rule_jq PROGRAM: runs PROGRAM with the jq of the action and the modules of
-# scripts/lock on the parsed lock.
+# rule_jq PROGRAM: runs PROGRAM on the parsed lock, with the lines of
+# allow-duplicates.
 rule_jq() {
   local program=$1
-  "$jq" -n -L "$LOCK_MODULES" --slurpfile parsed "$PARSED_LOCK" \
-    --arg allowed "$(items "${ALLOW_DUPLICATES-}")" "$program"
+  parsed_jq "$program" --arg allowed "$(items "${ALLOW_DUPLICATES-}")"
 }
 
 # apply_rules: the findings of duplicates, and of pin form unless it is off.
@@ -67,7 +65,7 @@ apply_rules() {
 
 main() {
   local reason lock
-  # The jq of the action, for lock_jq.
+  # The jq of the action, for lock_jq and parsed_jq.
   jq=$(tool jq) || fail "The tools step did not build jq."
   reason=$(lock_problem "$LOCK_PATH")
   [[ -z $reason ]] || fail "$reason"

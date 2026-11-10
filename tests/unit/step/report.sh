@@ -1,11 +1,11 @@
 # shellcheck shell=bash
 # Tests of scripts/step/report.sh.
-# shellcheck disable=SC2154 # work comes from setup.
+# shellcheck disable=SC2154 # work and state come from setup.
 # shellcheck disable=SC2016 # Markdown of the summary, not expansions
 
 # given_findings RULE JSON: the step of RULE found the findings JSON.
 given_findings() {
-  local rule=$1 json=$2 dir=$work/temp/action-flake-lock/findings
+  local rule=$1 json=$2 dir=$state/findings
   mkdir -p "$dir"
   printf '%s\n' "$json" >"$dir/$rule.json"
 }

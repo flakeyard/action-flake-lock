@@ -48,3 +48,13 @@ tool() {
   path=$(<"$TOOLS_DIR/$name")/bin/$name
   [[ -x $path ]] && printf '%s\n' "$path"
 }
+
+# parsed_jq PROGRAM [ARG...]: runs PROGRAM with the jq of the action, which
+# the step sets in jq, and the modules of scripts/lock, on the parsed lock as
+# $parsed; strings are printed as text.
+parsed_jq() {
+  local program=$1
+  shift
+  # shellcheck disable=SC2154 # jq is set by the step
+  "$jq" -rn -L "$LOCK_MODULES" --slurpfile parsed "$PARSED_LOCK" "$@" "$program"
+}
