@@ -1,7 +1,7 @@
 # shellcheck shell=bash
 # Runs of a script of the action, and checks of what it did. Source this file
 # after case.sh.
-# shellcheck disable=SC2154 # work, action and env_vars come from setup.
+# shellcheck disable=SC2154 # work and env_vars come from setup.
 
 # outcome NAME EXPECTED STATUS: start test NAME, which exited with STATUS;
 # EXPECTED is ok or fail.
@@ -24,7 +24,7 @@ run() {
     shift
   done
   (($#)) && shift && args=("$@")
-  env -i "${env_vars[@]}" "${vars[@]}" "$action/scripts/$script" "${args[@]}" \
+  env -i "${env_vars[@]}" "${vars[@]}" "$root/scripts/$script" "${args[@]}" \
     >"$work/stdout" 2>"$work/stderr" || status=$?
   outcome "$name" "$expected" "$status"
 }
@@ -39,7 +39,7 @@ run_lib() {
     export "${env_vars[@]}"
     for lib in $libs; do
       # shellcheck source=/dev/null
-      source "$action/scripts/lib/$lib"
+      source "$root/scripts/lib/$lib"
     done
     "$@"
   ) >"$work/stdout" 2>"$work/stderr" || status=$?

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Checks the runner and the inputs before anything is built, and reports every
-# problem at once.
+# Checks the server and the inputs before anything is built, and reports every
+# problem at once. The step of the shell library before it rejects runners
+# other than GitHub-hosted Linux on X64 and ARM64.
 #
 # Inputs (environment): LOCK_PATH, ALLOW_DUPLICATES, PIN_FORM.
 set -euo pipefail
@@ -12,12 +13,7 @@ source "$lib/env.sh"
 source "$lib/report.sh"
 # shellcheck source-path=SCRIPTDIR source=../lib/forms.sh
 source "$lib/forms.sh"
-# shellcheck source-path=SCRIPTDIR source=../lib/runner.sh
-source "$lib/runner.sh"
 
-# The architectures of the GitHub-hosted Linux runners that the action
-# supports, as RUNNER_ARCH names them.
-readonly ARCH_FORM='^(X64|ARM64)$'
 # The only server: GitHub Enterprise Server is not supported (ADR-0001).
 readonly GITHUB_COM=https://github.com
 
@@ -27,16 +23,7 @@ problem() {
   failed=true
 }
 
-# is_supported_runner: a Linux runner on X64 or ARM64.
-is_supported_runner() {
-  [[ ${RUNNER_OS-} == Linux && ${RUNNER_ARCH-} =~ $ARCH_FORM ]]
-}
-
-check_runner() {
-  is_supported_runner \
-    || problem "$(unsupported_runner "${RUNNER_OS-?}/${RUNNER_ARCH-?}")"
-  [[ ${RUNNER_ENVIRONMENT-} == github-hosted ]] \
-    || problem "Only GitHub-hosted runners are supported, not '${RUNNER_ENVIRONMENT-}'."
+check_server() {
   [[ ${GITHUB_SERVER_URL-} == "$GITHUB_COM" ]] \
     || problem "Only $GITHUB_COM is supported, not '${GITHUB_SERVER_URL-}'."
 }
@@ -61,7 +48,7 @@ check_pin_form() {
 }
 
 main() {
-  check_runner
+  check_server
   check_path
   check_allow_duplicates
   check_pin_form

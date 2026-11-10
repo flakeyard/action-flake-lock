@@ -10,31 +10,12 @@ lock_fixture() {
   echo '{}' >"$path"
 }
 
-# --- runner -------------------------------------------------------
+# --- server -------------------------------------------------------
 
 setup
 lock_fixture
-run "check: a GitHub-hosted x86_64 Linux runner" ok step/check.sh
+run "check: github.com" ok step/check.sh
 expect errors 0
-finish
-
-setup
-lock_fixture
-run "check: arm64" ok step/check.sh RUNNER_ARCH=ARM64
-finish
-
-for runner in macOS/ARM64 Windows/X64 Linux/X86 Linux/ARM; do
-  setup
-  lock_fixture
-  run "check: rejects $runner" fail step/check.sh RUNNER_OS="${runner%/*}" RUNNER_ARCH="${runner#*/}"
-  expect message "::error::Unsupported runner $runner"
-  finish
-done
-
-setup
-lock_fixture
-run "check: rejects a self-hosted runner" fail step/check.sh RUNNER_ENVIRONMENT=self-hosted
-expect message "Only GitHub-hosted runners are supported, not 'self-hosted'"
 finish
 
 setup
@@ -143,7 +124,7 @@ finish
 
 setup
 run "check: reports every problem at once" fail step/check.sh \
-  RUNNER_ENVIRONMENT=self-hosted ALLOW_DUPLICATES=x PIN_FORM=no
+  GITHUB_SERVER_URL=https://ghes.example.com ALLOW_DUPLICATES=x PIN_FORM=no
 expect errors 4
 finish
 

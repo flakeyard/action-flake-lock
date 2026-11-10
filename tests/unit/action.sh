@@ -1,20 +1,23 @@
 # shellcheck shell=bash
-# Static tests of action.yml: its interface (ADR-0001) and its steps, which
-# all run through scripts/run-step.sh.
+# Static tests of action.yml: its interface (ADR-0001) and its steps: the
+# shell library first, then the scripts, each through run-step.sh of the
+# library.
 # shellcheck disable=SC2016 # code of action.yml and awk, not expanded here
 
 : "${root:?}"
 
-# action_steps: prints the shell and the run of each step of action.yml,
-# separated by a tab, with a run folded over several lines joined.
+# action_steps: prints the uses, the shell and the run of each step of
+# action.yml, separated by the unit separator, which unlike a tab keeps empty
+# fields in read, with a run folded over several lines joined.
 action_steps() {
   awk '
-    function flush() { if (in_step) print shell "\t" run }
-    /^    - / { flush(); in_step = 1; shell = run = key = ""; sub(/^    - /, "      ") }
+    function flush() { if (in_step) print uses "\037" shell "\037" run }
+    /^    - / { flush(); in_step = 1; uses = shell = run = key = ""; sub(/^    - /, "      ") }
     in_step && /^      [a-z-]+:/ {
       key = $1; value = $0; sub(/^      [a-z-]+: */, "", value)
+      if (key == "uses:") uses = value
       if (key == "shell:") shell = value
-      if (key == "run:") run = value
+      if (key == "run:") run = (value == ">-" ? "" : value)
       next
     }
     in_step && key == "run:" && /^        / {
@@ -24,24 +27,36 @@ action_steps() {
   ' "$root/action.yml"
 }
 
+readonly LIB_USES_RE='^flakeyard/action-shell-lib@[0-9a-f]{40} # v[0-9]+\.[0-9]+\.[0-9]+$'
 readonly STEP_SHELL='/usr/bin/bash --noprofile --norc -p -e -o pipefail {0}'
-readonly STEP_RUN_RE='^/usr/bin/bash -p "\$GITHUB_ACTION_PATH/scripts/run-step.sh" ([a-z-]+)$'
-readonly UNSUPPORTED_OS_RUN='bash "$GITHUB_ACTION_PATH/scripts/step/unsupported-os.sh"'
-# The steps of the action on Linux, in their order.
-readonly LINUX_STEPS='check tools parse releases report'
+readonly STEP_RUN_RE='^/usr/bin/bash -p "\$SHELL_LIB/run-step\.sh" "\$GITHUB_ACTION_PATH/scripts/step" ([a-z-]+)( [A-Z_]+)*$'
+# The steps of the action after the shell library, in their order.
+readonly SCRIPT_STEPS='check tools parse releases report'
 
-start "action: every Linux step runs through run-step.sh, in order"
-linux_steps=()
-while IFS=$'\t' read -r shell command; do
-  if [[ $shell == bash && $command == "$UNSUPPORTED_OS_RUN" ]]; then
-    continue
+start "action: the shell library first, then every script through its run-step.sh, in order"
+script_steps=()
+while IFS=$'\037' read -r uses shell command; do
+  if [[ -n $uses ]]; then
+    [[ $uses =~ $LIB_USES_RE && ${#script_steps[@]} == 0 ]] || report "a step uses '$uses'"
   elif [[ $shell == "$STEP_SHELL" && $command =~ $STEP_RUN_RE ]]; then
-    linux_steps+=("${BASH_REMATCH[1]}")
+    script_steps+=("${BASH_REMATCH[1]}")
   else
     report "a step does not use run-step.sh: shell '$shell', run '$command'"
   fi
 done < <(action_steps)
-[[ "${linux_steps[*]}" == "$LINUX_STEPS" ]] || report "steps '${linux_steps[*]}', expected '$LINUX_STEPS'"
+[[ "${script_steps[*]}" == "$SCRIPT_STEPS" ]] || report "steps '${script_steps[*]}', expected '$SCRIPT_STEPS'"
+[[ $(grep -c 'SHELL_LIB: \${{ steps.lib.outputs.path }}' "$root/action.yml") == 5 ]] \
+  || report "not every script step gets SHELL_LIB from the step lib"
+finish
+
+# shell_lib_pins: the commits of the shell library that the files of this
+# repository pin, each once.
+shell_lib_pins() {
+  grep -ohE 'flakeyard/action-shell-lib@[0-9a-f]{40}' "$root/action.yml" "$root"/.github/workflows/*.yaml | sort -u
+}
+
+start "action: one commit of the shell library in every file"
+[[ $(shell_lib_pins | wc -l) == 1 ]] || report "pins: $(shell_lib_pins | paste -sd' ')"
 finish
 
 # action_inputs: the names of the inputs of action.yml, one per line.

@@ -1,8 +1,9 @@
 # shellcheck shell=bash
-# The life of one test: its name, its directory with a copy of the action and
-# a fake runner, and the counts of passed and failed tests. Source this file;
-# it expects root, the repository's directory.
-# shellcheck disable=SC2034 # work, action, state and env_vars are used by checks.sh
+# The life of one test: its name, its directory with a workspace and a fake
+# runner, and the counts of passed and failed tests. Source this file; it
+# expects root, the repository's directory, and SHELL_LIB, the directory of
+# the shell library.
+# shellcheck disable=SC2034 # work, state and env_vars are used by checks.sh
 
 : "${root:?}"
 failed=0 passed=0 current="" work=""
@@ -45,43 +46,37 @@ finish() {
   work=""
 }
 
-# redirect FILE FROM TO: replace FROM with TO in FILE of the copy of the
-# action; exits when FILE no longer has FROM, since the scripts would then use
-# the host.
+# redirect FILE FROM TO: replace FROM with TO in FILE; exits when FILE no
+# longer has FROM, since the scripts would then use the host.
 redirect() {
-  local file=$action/$1 from=$2 to=$3
+  local file=$1 from=$2 to=$3
   grep -qF -- "$from" "$file" || {
-    echo "tests: no '$from' in $1 to redirect" >&2
+    echo "tests: no '$from' in $file to redirect" >&2
     exit 2
   }
   sed -i -e "s|$from|$to|g" "$file"
 }
 
-# copy_action: the scripts and the flake in $action, with the tools of the
-# runner in $sysbin.
-copy_action() {
-  mkdir -p "$action"
-  cp -R "$root/scripts" "$root/action.yml" "$root/flake.nix" "$root/flake.lock" "$action/"
-  redirect scripts/lib/env.sh "SYSTEM_PATH=/usr/sbin:/usr/bin:/sbin:/bin" "SYSTEM_PATH=$sysbin"
-  redirect scripts/run-step.sh /usr/bin/env "$sysbin/env"
-  redirect scripts/run-step.sh /usr/bin/bash "$sysbin/bash"
-}
+# The shell library of SHELL_LIB, whose steps get the tools of the runner in
+# $sysbin.
+shell_lib=$shared/shell-lib
+cp -R -- "${SHELL_LIB:?the tests need SHELL_LIB, the directory of the shell library}" "$shell_lib"
+chmod -R u+w -- "$shell_lib"
+redirect "$shell_lib/env.sh" "SYSTEM_PATH=/usr/sbin:/usr/bin:/sbin:/bin" "SYSTEM_PATH=$sysbin"
+readonly shell_lib
 
-# setup: a fresh copy of the action, a workspace and the variables of a
-# GitHub-hosted x86_64 Linux runner. The job PATH has the stubs of tests/bin.
+# setup: a workspace and the variables of a GitHub-hosted runner. The job PATH
+# has the stubs of tests/bin.
 setup() {
   work=$(mktemp -d)
-  action=$work/action
   # STATE_DIR of lib/env.sh: the files that the steps share.
   state=$work/temp/action-flake-lock
-  copy_action
   mkdir -p "$work/workspace" "$work/temp" "$work/home" "$work/fixtures"
   : >"$work/calls"
   : >"$work/summary"
   env_vars=(
-    PATH="$root/tests/bin:$sysbin" HOME="$work/home"
+    PATH="$root/tests/bin:$sysbin" HOME="$work/home" SHELL_LIB="$shell_lib"
     FIXTURES="$work/fixtures" CALLS="$work/calls"
-    RUNNER_OS=Linux RUNNER_ARCH=X64 RUNNER_ENVIRONMENT=github-hosted
     RUNNER_TEMP="$work/temp" GITHUB_WORKSPACE="$work/workspace"
     GITHUB_SERVER_URL=https://github.com GITHUB_STEP_SUMMARY="$work/summary"
     LOCK_PATH=flake.lock PIN_FORM=true ALLOW_DUPLICATES=

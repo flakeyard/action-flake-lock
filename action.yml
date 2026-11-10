@@ -22,50 +22,73 @@ inputs:
       Token for reading the releases of flakeyard repositories; it needs no
       permissions.
     default: ${{ github.token }}
-# Steps use the runner's bash in privileged mode (-p), which reads no BASH_ENV
-# and imports no functions or shell options, and run-step.sh gives the scripts
-# only the variables they read, so that earlier steps of the job cannot inject
-# code through them. Variables of the dynamic loader, such as LD_PRELOAD, still
-# reach the first bash of every step: GitHub does not block them. Only the step
-# that looks up releases gets the token.
+# The first step gives the directory of the shell library, and rejects every
+# runner that the library does not support (ADR-0001). The other steps use the
+# runner's bash in privileged mode (-p), which reads no BASH_ENV and imports no
+# functions or shell options, and run-step.sh of the library gives each script
+# only the variables named on its run line, so that earlier steps of the job
+# cannot inject code through them. Variables of the dynamic loader, such as
+# LD_PRELOAD, still reach the first bash of every step: GitHub does not block
+# them. Only the step that looks up releases gets the token.
 runs:
   using: composite
   steps:
-    # The other steps need the runner's /usr/bin/bash, which only Linux has.
-    - name: Check the operating system
-      if: runner.os != 'Linux'
-      shell: bash
-      run: bash "$GITHUB_ACTION_PATH/scripts/step/unsupported-os.sh"
+    - id: lib
+      uses: flakeyard/action-shell-lib@3bad257f744402ce4627954c4250171150ffb54d # v0.1.1
 
-    - name: Check the runner and inputs
+    - name: Check the server and inputs
       shell: /usr/bin/bash --noprofile --norc -p -e -o pipefail {0}
       env:
+        SHELL_LIB: ${{ steps.lib.outputs.path }}
         LOCK_PATH: ${{ inputs.path }}
         ALLOW_DUPLICATES: ${{ inputs.allow-duplicates }}
         PIN_FORM: ${{ inputs.pin-form }}
-      run: /usr/bin/bash -p "$GITHUB_ACTION_PATH/scripts/run-step.sh" check
+      run: >-
+        /usr/bin/bash -p "$SHELL_LIB/run-step.sh"
+        "$GITHUB_ACTION_PATH/scripts/step" check
+        LOCK_PATH ALLOW_DUPLICATES PIN_FORM
+        GITHUB_SERVER_URL GITHUB_WORKSPACE RUNNER_TEMP
 
+    # PATH is the job's, where nix is; HOME and XDG_* are where nix keeps its
+    # cache and configuration.
     - name: Build the tools
       shell: /usr/bin/bash --noprofile --norc -p -e -o pipefail {0}
-      run: /usr/bin/bash -p "$GITHUB_ACTION_PATH/scripts/run-step.sh" tools
+      env:
+        SHELL_LIB: ${{ steps.lib.outputs.path }}
+      run: >-
+        /usr/bin/bash -p "$SHELL_LIB/run-step.sh"
+        "$GITHUB_ACTION_PATH/scripts/step" tools
+        PATH HOME XDG_CONFIG_HOME XDG_CACHE_HOME RUNNER_TEMP
 
     - name: Parse the lock file
       shell: /usr/bin/bash --noprofile --norc -p -e -o pipefail {0}
       env:
+        SHELL_LIB: ${{ steps.lib.outputs.path }}
         LOCK_PATH: ${{ inputs.path }}
         ALLOW_DUPLICATES: ${{ inputs.allow-duplicates }}
         PIN_FORM: ${{ inputs.pin-form }}
-      run: /usr/bin/bash -p "$GITHUB_ACTION_PATH/scripts/run-step.sh" parse
+      run: >-
+        /usr/bin/bash -p "$SHELL_LIB/run-step.sh"
+        "$GITHUB_ACTION_PATH/scripts/step" parse
+        LOCK_PATH ALLOW_DUPLICATES PIN_FORM GITHUB_WORKSPACE RUNNER_TEMP
 
     - name: Look up the releases
       shell: /usr/bin/bash --noprofile --norc -p -e -o pipefail {0}
       env:
+        SHELL_LIB: ${{ steps.lib.outputs.path }}
         TOKEN: ${{ inputs.github-token }}
-      run: /usr/bin/bash -p "$GITHUB_ACTION_PATH/scripts/run-step.sh" releases
+      run: >-
+        /usr/bin/bash -p "$SHELL_LIB/run-step.sh"
+        "$GITHUB_ACTION_PATH/scripts/step" releases
+        TOKEN HOME XDG_CONFIG_HOME XDG_CACHE_HOME RUNNER_TEMP
 
     - name: Report
       shell: /usr/bin/bash --noprofile --norc -p -e -o pipefail {0}
       env:
+        SHELL_LIB: ${{ steps.lib.outputs.path }}
         LOCK_PATH: ${{ inputs.path }}
         PIN_FORM: ${{ inputs.pin-form }}
-      run: /usr/bin/bash -p "$GITHUB_ACTION_PATH/scripts/run-step.sh" report
+      run: >-
+        /usr/bin/bash -p "$SHELL_LIB/run-step.sh"
+        "$GITHUB_ACTION_PATH/scripts/step" report
+        LOCK_PATH PIN_FORM GITHUB_STEP_SUMMARY RUNNER_TEMP

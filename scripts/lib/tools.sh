@@ -8,6 +8,7 @@ TOOLS_DIR=$STATE_DIR/tools
 # job_nix: prints the absolute path of nix on the PATH of the job.
 job_nix() {
   local nix
+  # shellcheck disable=SC2154 # JOB_PATH is set by step_environment
   nix=$(PATH=$JOB_PATH type -P nix) && [[ $nix == /* ]] && printf '%s\n' "$nix"
 }
 
