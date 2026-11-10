@@ -1,7 +1,7 @@
 # shellcheck shell=bash
 # Lock files and tools for the steps after step/tools.sh. Source this file
-# after case.sh.
-# shellcheck disable=SC2154 # work and state come from setup.
+# after tests/lib/action.sh.
+# shellcheck disable=SC2154 # work and state come from action_setup.
 
 readonly LOCK_FIXTURES=$root/tests/fixtures/locks
 

@@ -111,8 +111,9 @@ The root [`flake.nix`](flake.nix) holds only the tools that the action runs,
 none of them: `formatting` (nixfmt), `shell` (shellcheck and shfmt) and `unit`
 ([`tests/run.sh`](tests/run.sh)). The `unit` check fetches the shell library at
 the commit that [`action.yml`](action.yml) pins and gives it to the tests as
-`SHELL_LIB`; `tests/run.sh` alone needs `SHELL_LIB` set to a checkout of it. Run
-the checks with:
+`SHELL_LIB`, whose harness and stubs of `gh` and `sleep` they use. Alone,
+`tests/run.sh` needs `SHELL_LIB` set to a checkout of the library and mikefarah
+`yq`, such as from `nix shell nixpkgs#yq-go`. Run the checks with:
 
 ```sh
 nix flake check --no-update-lock-file ./dev

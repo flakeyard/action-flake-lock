@@ -1,5 +1,6 @@
 # shellcheck shell=bash
 # Tests of scripts/check/eol.sh.
+# shellcheck disable=SC2034 # current is the test that report and finish count
 
 : "${root:?}"
 eol_script=$root/scripts/check/eol.sh
@@ -13,7 +14,7 @@ eol_run() {
   local name=$1 expected=$2 content=$3 message=$4 output status=0
   shift 4
   printf '%b' "$content" >"$eol_file"
-  start "eol: $name"
+  current="eol: $name"
   output=$("$eol_script" "$@" 2>&1) || status=$?
   if [[ $expected == ok && $status -ne 0 ]] || [[ $expected == fail && $status -eq 0 ]]; then
     report "expected $expected, exit status $status: $output"
@@ -59,7 +60,7 @@ eol_branch() {
 }
 
 for lock in flake.lock dev/flake.lock; do
-  start "eol: nixpkgs-eol names the branch of $lock"
+  current="eol: nixpkgs-eol names the branch of $lock"
   jq -e --arg branch "$(eol_branch)" '.nodes.nixpkgs.original.ref == $branch' "$root/$lock" >/dev/null \
     || report "nixpkgs-eol names $(eol_branch), $lock follows another branch"
   finish

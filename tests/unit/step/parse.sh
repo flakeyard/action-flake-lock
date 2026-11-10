@@ -7,28 +7,28 @@ readonly NODE_PATHS='[.nodes[] | "\(.name)=\(.path | join("."))"] | join(" ")'
 readonly ROOT_INPUTS='[.inputs[] | "\(.name)=\(.node)"] | join(" ")'
 
 for version in 5 6 7; do
-  setup
+  action_setup
   given_tools
   given_lock "version-$version"
-  run "parse: reads a lock of version $version" ok step/parse.sh
+  run "parse: reads a lock of version $version" ok scripts/step/parse.sh
   expect_parsed "nodes" "$NODE_PATHS" "nixpkgs=nixpkgs"
   finish
 done
 
 for version in 4 8; do
-  setup
+  action_setup
   given_tools
   given_lock "version-$version"
-  run "parse: fails on a lock of version $version" fail step/parse.sh
+  run "parse: fails on a lock of version $version" fail scripts/step/parse.sh
   expect message "The lock file flake.lock has version $version; the action reads versions 5, 6, 7."
   finish
 done
 
 while IFS='|' read -r case message; do
-  setup
+  action_setup
   given_tools
   given_lock "$case"
-  run "parse: fails on $case" fail step/parse.sh
+  run "parse: fails on $case" fail scripts/step/parse.sh
   expect message "$message"
   finish
 done <<'CASES'
@@ -37,32 +37,32 @@ two-documents|The lock file flake.lock is not one JSON document.
 not-a-lock|The lock file flake.lock is not a lock file of Nix.
 CASES
 
-setup
+action_setup
 given_tools
-run "parse: fails on a missing lock file" fail step/parse.sh
+run "parse: fails on a missing lock file" fail scripts/step/parse.sh
 expect message "No lock file at flake.lock."
 finish
 
-setup
+action_setup
 given_tools
 given_lock version-7 ../outside.lock
-run "parse: reads no lock out of the workspace" fail step/parse.sh LOCK_PATH=../outside.lock
+run "parse: reads no lock out of the workspace" fail scripts/step/parse.sh LOCK_PATH=../outside.lock
 expect message "is outside the workspace"
 finish
 
-setup
+action_setup
 given_lock version-7
-run "parse: needs the jq of the action" fail step/parse.sh
+run "parse: needs the jq of the action" fail scripts/step/parse.sh
 expect message "The tools step did not build jq."
 finish
 
 # --- follows ------------------------------------------------------
 
-setup
+action_setup
 given_tools
 given_lock follows
 # x declares a as an input, a cycle; follows are not resolved.
-run "parse: a cyclic lock ends" ok step/parse.sh
+run "parse: a cyclic lock ends" ok scripts/step/parse.sh
 expect_parsed "nodes" "$NODE_PATHS" "a=a b=b x=a.x"
 expect_parsed "root inputs" "$ROOT_INPUTS" "a=a b=b c=null d=null e=null"
 expect_parsed "parents" '[.nodes[] | .parent] | map(. // "root") | join(" ")' "root root a"
@@ -70,10 +70,10 @@ finish
 
 # --- the text of the lock is data --------------------------------
 
-setup
+action_setup
 given_tools
 given_lock version-7
 sed -i 's/"nixpkgs"/"a\\") | halt_error(\\"x"/g' "$work/workspace/flake.lock"
-run "parse: names of the lock are not code" ok step/parse.sh
+run "parse: names of the lock are not code" ok scripts/step/parse.sh
 expect_parsed "nodes" '.nodes[].name' 'a") | halt_error("x'
 finish
