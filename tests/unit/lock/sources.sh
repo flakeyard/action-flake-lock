@@ -1,10 +1,10 @@
 # shellcheck shell=bash
 # Tests of scripts/lock/sources.jq, through step/parse.sh.
 
-setup
+action_setup
 given_tools
 given_lock sources
-run "sources: parse the sources fixture" ok step/parse.sh
+run "sources: parse the sources fixture" ok scripts/step/parse.sh
 while read -r name source; do
   expect_parsed "source of $name" ".nodes[] | select(.name == \"$name\") | .source.id // \"skipped\"" "$source"
 done <<'CASES'

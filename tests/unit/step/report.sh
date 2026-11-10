@@ -26,21 +26,21 @@ a_finding() {
   jq -cn --arg rule "$1" --arg input "$2" --arg message "$3" '{rule: $rule, input: $input, message: $message}'
 }
 
-setup
+action_setup
 given_tools
 no_findings
-run "report: a lock without problems passes" ok step/report.sh
+run "report: a lock without problems passes" ok scripts/step/report.sh
 expect message "::notice::flake.lock passes every check of action-flake-lock."
 expect summary '`flake.lock` passes every check'
 finish
 
-setup
+action_setup
 given_tools
 no_findings
 given_findings duplicates "[$(a_finding duplicates github.com/o/r 'r is locked 2 times')]"
 given_findings release '[{"rule":"release","input":"inputs.b","message":"Could not verify inputs.b","unverified":true},
   {"rule":"release","input":"inputs.a","message":"inputs.a of flakeyard/a: bad rev"}]'
-run "report: every finding, in the summary and as annotations" fail step/report.sh
+run "report: every finding, in the summary and as annotations" fail scripts/step/report.sh
 expect message "::error file=flake.lock,title=Duplicated source%3A github.com/o/r::r is locked 2 times"
 expect message "::error file=flake.lock,title=Release%3A inputs.a::inputs.a of flakeyard/a: bad rev"
 expect message "::error file=flake.lock,title=Could not verify%3A inputs.b::Could not verify inputs.b"
@@ -52,11 +52,11 @@ expect summary '| Release | `inputs.a` | `inputs.a of flakeyard/a: bad rev` |'
 [[ -z $current ]] || [[ $(tail -1 "$work/summary") == *"Could not verify"* ]] || report "an input that could not be verified is not last"
 finish
 
-setup
+action_setup
 given_tools
 no_findings
 given_findings pin-form "$(findings_of 12)"
-run "report: at most 10 annotations, the last says how many more" fail step/report.sh
+run "report: at most 10 annotations, the last says how many more" fail scripts/step/report.sh
 expect errors 10
 expect message "title=Pin form%3A inputs.i9::problem 9"
 expect no-message "inputs.i10::"
@@ -65,41 +65,41 @@ expect message "flake.lock has 12 problems; the job summary lists them."
 expect summary '`inputs.i12`'
 finish
 
-setup
+action_setup
 given_tools
 no_findings
 given_findings pin-form "$(findings_of 10)"
-run "report: ten findings are all annotations" fail step/report.sh
+run "report: ten findings are all annotations" fail scripts/step/report.sh
 expect errors 10
 expect message "title=Pin form%3A inputs.i10::problem 10"
 expect no-message "more errors"
 finish
 
-setup
+action_setup
 given_tools
 given_findings duplicates '[]'
 given_findings release '[]'
-run "report: pin-form off has no findings" ok step/report.sh PIN_FORM=false
+run "report: pin-form off has no findings" ok scripts/step/report.sh PIN_FORM=false
 finish
 
-setup
+action_setup
 given_tools
 given_findings duplicates '[]'
-run "report: fails when a step did not run" fail step/report.sh
+run "report: fails when a step did not run" fail scripts/step/report.sh
 expect message "The findings of pin-form are missing: an earlier step did not run."
 finish
 
 # --- names of the lock -------------------------------------------
 
-setup
+action_setup
 given_tools
 given_lock hostile-names
-run "report: parse a lock with a hostile name" ok step/parse.sh
+run "report: parse a lock with a hostile name" ok scripts/step/parse.sh
 prepared
 releases_of none
-run "report: look up no releases" ok step/releases.sh TOKEN=ghs_x
+run "report: look up no releases" ok scripts/step/releases.sh TOKEN=ghs_x
 prepared
-run "report: names of the lock cannot leave their annotation" fail step/report.sh
+run "report: names of the lock cannot leave their annotation" fail scripts/step/report.sh
 expect message '::error file=flake.lock,title=Pin form%3A inputs."a%2Cb%3Ac%2525\r\n%3A%3Awarning%3A%3Ax"::inputs."a,b:c%2525\r\n::warning::x" is not pinned'
 [[ -z $current ]] || ! grep -q '^::warning' "$work/stdout" || report "a name started a workflow command"
 finish

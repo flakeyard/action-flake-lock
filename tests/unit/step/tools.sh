@@ -23,40 +23,40 @@ expect_recorded() {
     || report "recorded for $name: '$(cat "$file" 2>/dev/null)', expected '$path'"
 }
 
-setup
+action_setup
 fake_package jq
 fake_package gh
-run "tools: builds jq and gh from the flake of the action" ok step/tools.sh
+run "tools: builds jq and gh from the flake of the action" ok scripts/step/tools.sh
 expect call "nix build --no-link --print-out-paths --no-update-lock-file path:$root#jq"
 expect call "nix build --no-link --print-out-paths --no-update-lock-file path:$root#gh"
 expect_recorded jq "$work/store/jq"
 expect_recorded gh "$work/store/gh"
 finish
 
-setup
+action_setup
 fake_package jq "$work/store/jq-bin" "$work/store/jq-man"
 fake_package gh
-run "tools: a package with two outputs fails" fail step/tools.sh
+run "tools: a package with two outputs fails" fail scripts/step/tools.sh
 expect message "nix build of jq printed '$work/store/jq-bin $work/store/jq-man', expected one store path."
 finish
 
-setup
+action_setup
 fake_package gh
-run "tools: a failed build fails" fail step/tools.sh
+run "tools: a failed build fails" fail scripts/step/tools.sh
 expect message "Cannot build jq from the flake of the action."
 finish
 
-setup
-run "tools: no nix on the PATH of the job" fail step/tools.sh PATH="$sysbin"
+action_setup
+run "tools: no nix on the PATH of the job" fail scripts/step/tools.sh PATH="$sysbin"
 expect message "No nix on PATH"
 expect no-calls
 finish
 
-setup
+action_setup
 mkdir -p "$state"
 touch "$state/lock.json"
 fake_package jq
 fake_package gh
-run "tools: starts the files of the steps afresh" ok step/tools.sh
+run "tools: starts the files of the steps afresh" ok scripts/step/tools.sh
 [[ -z $current || ! -e $state/lock.json ]] || report "lock.json of an earlier run is left"
 finish

@@ -1,5 +1,5 @@
-# tests/run.sh passes: the unit tests of the scripts, with the stubs of
-# tests/bin instead of nix and gh, and the shell library that action.yml pins.
+# tests/run.sh passes: the unit tests of the scripts, with the harness and
+# stubs of the shell library that action.yml pins and the stubs of tests/bin.
 {
   perSystem =
     {
@@ -18,6 +18,7 @@
               gnugrep
               gnused
               jq
+              yq-go
             ];
           }
           ''

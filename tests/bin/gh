@@ -1,86 +1,9 @@
 #!/usr/bin/env bash
-# Stub of gh for tests of the release rule, after tests/bin/gh of
-# workflow-check.
-#
-# "api -X POST graphql -f query=... -f owner=OWNER -f name=NAME" is appended to $CALLS
-# with the variables of gh and answered from $FIXTURES/graphql-OWNER-NAME;
-# with --paginate, $FIXTURES/graphql-OWNER-NAME.2, .3 and so on are further
-# pages. A missing file is the GraphQL error of a repository that does not
-# exist, and a file containing "HTTP 500" is a server error; like gh, errors
-# print the error body on stdout and the message on stderr. While
-# $FIXTURES/graphql-OWNER-NAME.transient holds a count above zero, each call
-# decrements it and fails with HTTP 504. The stub uses builtins only: it runs
-# with the PATH of the runner.
+# The gh that the tools step builds, in tests: appends the variables of gh to
+# $CALLS, as "gh GH_HOST=... GH_TOKEN=...", then runs the gh stub of the shell
+# library in $SHELL_LIB.
 set -euo pipefail
 
-# fail STATUS MESSAGE: fail like gh does on an HTTP error.
-fail() {
-  local status=$1 message=$2
-  printf '{"message":"%s","status":"%s"}\n' "$message" "$status"
-  echo "gh: $message (HTTP $status)" >&2
-  exit 1
-}
-
-# not_found OWNER NAME: fail like gh does on a GraphQL error.
-not_found() {
-  local message="Could not resolve to a Repository with the name '$1/$2'."
-  printf '{"data":{"repository":null},"errors":[{"type":"NOT_FOUND","message":"%s"}]}\n' "$message"
-  echo "gh: $message" >&2
-  exit 1
-}
-
-# fail_transiently FILE: fail with HTTP 504 while the count of FILE.transient
-# lasts.
-fail_transiently() {
-  local file=$1 count
-  [[ -f $file.transient ]] || return 0
-  count=$(<"$file.transient")
-  ((count > 0)) || return 0
-  echo $((count - 1)) >"$file.transient"
-  fail 504 "Gateway Timeout"
-}
-
-# answer FILE PAGINATE: print the pages of FILE, all of them when PAGINATE is
-# true.
-answer() {
-  local file=$1 paginate=$2 page=2
-  [[ $(<"$file") != *"HTTP 500"* ]] || fail 500 "Server Error"
-  printf '%s\n' "$(<"$file")"
-  while $paginate && [[ -f $file.$page ]]; do
-    printf '%s\n' "$(<"$file.$page")"
-    page=$((page + 1))
-  done
-}
-
-[[ "$*" == "api -X POST graphql "* ]] || {
-  echo "stub gh: unsupported: $*" >&2
-  exit 2
-}
-shift 4
-
-paginate=false owner="" name=""
-while (($#)); do
-  case $1 in
-    --paginate) paginate=true ;;
-    -f)
-      case $2 in
-        owner=*) owner=${2#owner=} ;;
-        name=*) name=${2#name=} ;;
-        query=*) ;;
-        *) fail 400 "stub gh: unexpected field $2" ;;
-      esac
-      shift
-      ;;
-    *)
-      echo "stub gh: unsupported argument $1" >&2
-      exit 2
-      ;;
-  esac
-  shift
-done
-
-echo "graphql owner=$owner name=$name GH_HOST=${GH_HOST-} GH_TOKEN=${GH_TOKEN-} GH_REPO=${GH_REPO-} GH_ENTERPRISE_TOKEN=${GH_ENTERPRISE_TOKEN-} GH_CONFIG_DIR=${GH_CONFIG_DIR-}" >>"$CALLS"
-file=$FIXTURES/graphql-$owner-$name
-fail_transiently "$file"
-[[ -f $file ]] || not_found "$owner" "$name"
-answer "$file" "$paginate"
+printf 'gh GH_HOST=%s GH_TOKEN=%s GH_REPO=%s GH_ENTERPRISE_TOKEN=%s GH_CONFIG_DIR=%s\n' \
+  "${GH_HOST-}" "${GH_TOKEN-}" "${GH_REPO-}" "${GH_ENTERPRISE_TOKEN-}" "${GH_CONFIG_DIR-}" >>"$CALLS"
+exec "$SHELL_LIB/internal/testing/bin/gh" "$@"
