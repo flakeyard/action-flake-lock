@@ -112,7 +112,8 @@ nix flake check --no-update-lock-file ./dev
 ```
 
 The repository checks itself with [`test.yaml`](.github/workflows/test.yaml) on
-x86_64 and arm64 runners: the job `tools` builds every package of the root flake
+x86_64 and arm64 runners: the job `tools` runs the action on the root
+`flake.lock`, which consumers get, then builds every package of the root flake
 and checks that each yields one store path, the job `action` runs the action on
 a lock that passes and on one that breaks every rule, and
 [workflow-check][workflow-check] builds the checks of `./dev`, checks the pull
@@ -140,9 +141,9 @@ yet. Until they are:
 - actionlint, zizmor, prettier, markdownlint, typos and REUSE run locally before
   every pull request; the atoms will provide them.
 - The CI of this repository uses workflow-check 0.1.x, which does not run this
-  action yet; the job `action` runs it on its own fixtures instead.
-  workflow-check adopts the action in its first pull request after the first
-  release ([workflow-check ADR-0002][wc-adr-0002]).
+  action yet; the jobs `tools` and `action` run it on the root `flake.lock` and
+  on its own fixtures instead. workflow-check adopts the action in its first
+  pull request after the first release ([workflow-check ADR-0002][wc-adr-0002]).
 
 ## License
 

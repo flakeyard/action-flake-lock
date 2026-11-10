@@ -37,6 +37,10 @@ jobs:
         with:
           persist-credentials: false
       - uses: flakeyard/action-setup-nix@feaa363e1aa0007d70c643731c508bb40190ce83 # v0.1.2
+      # The lock that consumers get, by the rules of the action itself:
+      # workflow-check checks only dev/flake.lock.
+      - name: The root flake.lock
+        uses: $/
       - run: tests/ci/tools.sh
 
   action:
