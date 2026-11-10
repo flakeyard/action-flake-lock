@@ -19,6 +19,12 @@ if require_yq action.yml; then
     '[.runs.steps[1:][] | .run | match($run).captures[0].string] == $steps' \
     --arg run "$STEP_RUN_FORM" --argjson steps "$SCRIPT_STEPS"
 
+  # Without it, a branch past its end of life only warns in scheduled runs
+  # too (ADR-0002).
+  yaml_check "$action" "action: the step parse gets GITHUB_EVENT_NAME" \
+    '[.runs.steps[] | .run // "" | match($run) | .captures | select(.[0].string == "parse")
+    | .[1].string | split(" ") | any(. == "GITHUB_EVENT_NAME")] == [true]' --arg run "$STEP_RUN_FORM"
+
   yaml_check "$action" "action: exactly the inputs of ADR-0002 and no outputs" \
     '(.inputs | keys_unsorted) == $inputs and (has("outputs") | not)' --argjson inputs "$INPUTS"
 
