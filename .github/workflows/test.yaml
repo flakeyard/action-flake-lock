@@ -72,8 +72,13 @@ jobs:
         env:
           OUTCOME: ${{ steps.failing.outcome }}
         run: tests/ci/failed.sh
+      # The shell library at the commit of action.yml, for the steps that
+      # tests/ci/failing.sh runs as action.yml does.
+      - id: lib
+        uses: flakeyard/action-shell-lib@45a4f6dab25e68ed019882bcdf187f5067c8a9c1 # v0.1.0
       - name: Check the annotations of every rule
         env:
+          SHELL_LIB: ${{ steps.lib.outputs.path }}
           TOKEN: ${{ github.token }}
         run: tests/ci/failing.sh
 

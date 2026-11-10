@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# Runs the steps of the action as action.yml does, on a real runner with the
-# API, on a lock that breaks every rule: the report fails with one annotation
-# per rule, and the release rule names the newest release.
-# Usage: TOKEN=<token> tests/ci/failing.sh (from the root of the repository)
+# Runs the steps of the action with the run lines of action.yml, on a real
+# runner with the API, on a lock that breaks every rule: the report fails with
+# one annotation per rule, and the release rule names the newest release.
+# Needs mikefarah yq, which GitHub-hosted runners have.
+# Usage: SHELL_LIB=<shell library> TOKEN=<token> tests/ci/failing.sh (from the
+# root of the repository)
 set -euo pipefail
 shopt -s inherit_errexit
 
@@ -14,21 +16,24 @@ readonly EXPECTED=(
   "title=Release%3A inputs.setup::inputs.setup of flakeyard/action-setup-nix: its rev $UNRELEASED is not the commit of an immutable release v0.Y.Z. The newest release of v0 is v0."
 )
 
-# step NAME: runs the step NAME of the action on LOCK.
-step() {
-  local name=$1
-  LOCK_PATH=$LOCK ALLOW_DUPLICATES="" PIN_FORM=true \
-    /usr/bin/bash -p scripts/run-step.sh "$name"
+# The inputs of the steps, as action.yml gives them, and its directory.
+export SHELL_LIB=${SHELL_LIB:?} TOKEN=${TOKEN:?} LOCK_PATH=$LOCK ALLOW_DUPLICATES="" PIN_FORM=true GITHUB_ACTION_PATH=$PWD
+
+# run_lines: prints the run line of each step of action.yml that has one.
+run_lines() {
+  yq -r '.runs.steps[] | select(has("run")) | .run' action.yml
 }
 
-# run_steps: prints what the steps printed; fails unless only the report
-# failed.
+# run_steps: prints what the steps printed; fails unless only the last one,
+# the report, failed. It runs in a condition, where set -e is off.
 run_steps() {
-  local name
-  for name in check tools parse releases; do
-    step "$name"
+  local lines line
+  mapfile -t lines < <(run_lines)
+  ((${#lines[@]} > 1)) || return 1
+  for line in "${lines[@]:0:${#lines[@]}-1}"; do
+    eval "$line" || return 1
   done
-  ! step report
+  ! eval "${lines[-1]}"
 }
 
 # shown OUTPUT: OUTPUT without workflow commands, for the log.

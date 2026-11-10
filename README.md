@@ -30,7 +30,9 @@ Reference the action by full commit SHA, as above. It has no outputs: it
 succeeds, or fails with every problem of the lock in the job summary and as
 annotations of the lock file. GitHub shows at most 10 error annotations per
 step, so when there are more, the tenth says how many more the summary has. It
-has no warn-only mode.
+has no warn-only mode. Its first step runs [action-shell-lib][action-shell-lib],
+the shell library of its other steps, which fails the job on a runner that the
+action does not support.
 
 ## Inputs
 
@@ -79,8 +81,10 @@ version and on a missing lock file.
 ## Runner requirements
 
 - A GitHub-hosted Linux runner on x86_64 or arm64, such as `ubuntu-24.04` or
-  `ubuntu-24.04-arm`, on `github.com`. Other runners and GitHub Enterprise
-  Server are rejected before anything is built.
+  `ubuntu-24.04-arm`, on `github.com`. The first step of the action, the shell
+  library [action-shell-lib][action-shell-lib], fails the job on any other
+  runner, self-hosted ones included; GitHub Enterprise Server is rejected next.
+  Both happen before anything is built.
 - `nix` on `PATH` with the experimental features `nix-command` and `flakes`,
   such as from [action-setup-nix][action-setup-nix]. The action does not install
   Nix. Determinate Nix and Lix are not tested.
@@ -105,7 +109,10 @@ The root [`flake.nix`](flake.nix) holds only the tools that the action runs,
 `jq` and `gh`, from one pinned nixpkgs. The checks of the repository live in
 [`dev/flake.nix`](dev/flake.nix), with its own lock, so that consumers fetch
 none of them: `formatting` (nixfmt), `shell` (shellcheck and shfmt) and `unit`
-([`tests/run.sh`](tests/run.sh)). Run them with:
+([`tests/run.sh`](tests/run.sh)). The `unit` check fetches the shell library at
+the commit that [`action.yml`](action.yml) pins and gives it to the tests as
+`SHELL_LIB`; `tests/run.sh` alone needs `SHELL_LIB` set to a checkout of it. Run
+the checks with:
 
 ```sh
 nix flake check --no-update-lock-file ./dev
@@ -150,6 +157,7 @@ yet. Until they are:
 [MIT](LICENSE).
 
 [action-setup-nix]: https://github.com/flakeyard/action-setup-nix
+[action-shell-lib]: https://github.com/flakeyard/action-shell-lib
 [adr-0001]: docs/adr/records/0001-check-flake-lock.md
 [versioning]: https://github.com/flakeyard/.github/blob/main/VERSIONING.md
 [wc-adr-0002]:

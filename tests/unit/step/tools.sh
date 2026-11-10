@@ -1,6 +1,6 @@
 # shellcheck shell=bash
 # Tests of scripts/step/tools.sh and scripts/lib/tools.sh, with the nix stub.
-# shellcheck disable=SC2154 # work, action and state come from setup.
+# shellcheck disable=SC2154 # work and state come from setup.
 
 # fake_package NAME [PATH...]: the nix stub builds the package NAME to PATH,
 # by default one store path with an executable bin/NAME.
@@ -27,8 +27,8 @@ setup
 fake_package jq
 fake_package gh
 run "tools: builds jq and gh from the flake of the action" ok step/tools.sh
-expect call "nix build --no-link --print-out-paths --no-update-lock-file path:$action#jq"
-expect call "nix build --no-link --print-out-paths --no-update-lock-file path:$action#gh"
+expect call "nix build --no-link --print-out-paths --no-update-lock-file path:$root#jq"
+expect call "nix build --no-link --print-out-paths --no-update-lock-file path:$root#gh"
 expect_recorded jq "$work/store/jq"
 expect_recorded gh "$work/store/gh"
 finish

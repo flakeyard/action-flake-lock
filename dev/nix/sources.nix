@@ -8,6 +8,7 @@
         root = ../..;
         fileset = pkgs.lib.fileset.unions [
           ../../action.yml
+          ../../.github/workflows
           ../../scripts
           ../../tests
           ../../flake.lock
