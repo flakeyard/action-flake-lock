@@ -1,13 +1,12 @@
 # The release rule (ADR-0001, FY-0016): the rev of every flakeyard input is
 # the commit of the tag of an immutable GitHub release vX.Y.Z, and its ref,
 # when set, is vX of that major version or exactly that vX.Y.Z. Reads the
-# parsed lock of nodes.jq with the sources of sources.jq, and the releases
-# that step/releases.sh looked up.
+# parsed lock of nodes.jq with the sources of sources.jq, the releases that
+# step/releases.sh looked up, and rev_form of forms.jq.
 
 def release_tag_form: "^v(?<major>[0-9]+)\\.(?<minor>[0-9]+)\\.(?<patch>[0-9]+)$";
 # A ref that names a major version: vX or vX.Y.Z.
 def ref_form: "^v(?<major>[0-9]+)(\\.[0-9]+\\.[0-9]+)?$";
-def rev_form: "^[0-9a-f]{40}$";
 
 # finding($node; $message): a violation of this rule by $node.
 def finding($node; $message): {rule: "release", input: $node.attribute, message: $message};
@@ -48,10 +47,10 @@ def newest($releases; $major):
     elif $major then "The newest release of v\($major) is \($newest.tag) at \($newest.commit)."
     else "The newest release is \($newest.tag) at \($newest.commit)." end;
 
-# problem($node; $releases): what of the rule $node breaks; nothing when it
+# problem($node; $releases; rev_form): what of the rule $node breaks; nothing when it
 # keeps it. Several releases may tag the commit of its rev: a ref vX.Y.Z may
 # be any of them.
-def problem($node; $releases):
+def problem($node; $releases; rev_form):
   $node.locked.rev as $rev | $node.original.ref as $ref | major($ref) as $major
   | [$releases | of_major($major)[] | select(.commit == $rev) | .tag] as $tags
   | if $ref != null and $major == null then "its ref \($ref) is neither vX nor vX.Y.Z"
@@ -61,17 +60,17 @@ def problem($node; $releases):
       "its ref \($ref) is not the tag of a release of its rev, \($tags | join(", "))"
     else empty end;
 
-# verdict($node; $releases): a finding when $node breaks the rule.
-def verdict($node; $releases):
-  first(problem($node; $releases)) as $problem
+# verdict($node; $releases; rev_form): a finding when $node breaks the rule.
+def verdict($node; $releases; rev_form):
+  first(problem($node; $releases; rev_form)) as $problem
   | finding($node; "\($node.attribute) of flakeyard/\($node.source.repo): \($problem). \(newest($releases; major($node.original.ref)))");
 
-# release_findings($lookups): the findings of every flakeyard input, from
-# $lookups of {repo, releases} or {repo, error}.
-def release_findings($lookups):
+# release_findings($lookups; rev_form): the findings of every flakeyard input,
+# from $lookups of {repo, releases} or {repo, error}.
+def release_findings($lookups; rev_form):
   (reduce $lookups[] as $lookup ({}; .[$lookup.repo] = $lookup)) as $by_repo
   | flakeyard_nodes as $node
   | $by_repo[$node.source.repo] as $lookup
   | if $lookup == null then unverified($node; "it was not looked up")
     elif $lookup.error then unverified($node; $lookup.error)
-    else verdict($node; $lookup.releases) end;
+    else verdict($node; $lookup.releases; rev_form) end;

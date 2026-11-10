@@ -12,6 +12,8 @@ source "$lib/env.sh"
 source "$lib/report.sh"
 # shellcheck source-path=SCRIPTDIR source=../lib/forms.sh
 source "$lib/forms.sh"
+# shellcheck source-path=SCRIPTDIR source=../lib/runner.sh
+source "$lib/runner.sh"
 
 # The architectures of the GitHub-hosted Linux runners that the action
 # supports, as RUNNER_ARCH names them.
@@ -32,7 +34,7 @@ is_supported_runner() {
 
 check_runner() {
   is_supported_runner \
-    || problem "Unsupported runner ${RUNNER_OS-?}/${RUNNER_ARCH-?}: use a GitHub-hosted Linux runner on X64 or ARM64, such as ubuntu-24.04 or ubuntu-24.04-arm."
+    || problem "$(unsupported_runner "${RUNNER_OS-?}/${RUNNER_ARCH-?}")"
   [[ ${RUNNER_ENVIRONMENT-} == github-hosted ]] \
     || problem "Only GitHub-hosted runners are supported, not '${RUNNER_ENVIRONMENT-}'."
   [[ ${GITHUB_SERVER_URL-} == "$GITHUB_COM" ]] \

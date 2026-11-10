@@ -39,7 +39,7 @@ readonly RELEASES_QUERY='query($owner: String!, $name: String!, $endCursor: Stri
 # shellcheck disable=SC2016 # variables of jq
 readonly REPOSITORIES_PROGRAM='include "releases"; $parsed[0] | flakeyard_repositories[]'
 # shellcheck disable=SC2016 # variables of jq
-readonly FINDINGS_PROGRAM='include "releases"; $parsed[0] | [release_findings($lookups)]'
+readonly FINDINGS_PROGRAM='include "forms"; include "releases"; $parsed[0] | [release_findings($lookups; rev_form)]'
 # The lookup of a repository, from its GraphQL pages or the reason it failed.
 # shellcheck disable=SC2016 # variables of jq
 readonly RELEASES_PROGRAM='include "releases"; {repo: $repo, releases: ([inputs] | releases)}'

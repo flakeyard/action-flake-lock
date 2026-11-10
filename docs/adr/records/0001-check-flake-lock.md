@@ -76,12 +76,13 @@ organization ([FY-0022][fy-0022]).
    and `dir` is part of the source. Every other source (GitLab, sourcehut,
    FlakeHub, other tarballs, `path`, indirect) is skipped. A duplicate is two
    distinct nodes with the same normalized source, also at the same `rev`.
-   `follows` (array values in `inputs`) are resolved with a depth limit, so that
-   a crafted or cyclic lock cannot loop. A `follows` line, nested ones such as
-   `inputs.a.inputs.b.follows` included, is printed only when exactly one root
-   input matches; for a flakeyard input reached through a third-party flake the
-   message says that the fix is a `follows`. The input `allow-duplicates` lists
-   intentional duplicates as normalized sources, such as
+   `follows` (array values in `inputs`) are not resolved: nodes are reached only
+   through declared inputs, and the traversal stops at nodes it has visited, so
+   that a crafted or cyclic lock cannot loop. A `follows` line, nested ones such
+   as `inputs.a.inputs.b.follows` included, is printed only when exactly one
+   root input matches; for a flakeyard input reached through a third-party flake
+   the message says that the fix is a `follows`. The input `allow-duplicates`
+   lists intentional duplicates as normalized sources, such as
    `github.com/nixos/nixpkgs` or `github.com/<owner>/<repo>?dir=<dir>`; the
    second nixpkgs of [FY-0026][fy-0026] goes there.
 3. **Pin form** ([FY-0016][fy-0016]), on unless the input `pin-form` is `false`.
@@ -204,8 +205,8 @@ repositories, and how release lookups paginate.
 - Normalization MUST ignore case of host, owner and repository, MUST remove
   `.git` and a trailing `/`, and MUST keep `dir`. Sources outside the recognised
   forms MUST be skipped, not reported.
-- Resolution of `follows` MUST stop at a depth limit; a cyclic or crafted lock
-  MUST NOT make the action loop.
+- The traversal of declared inputs MUST stop at nodes it has visited; `follows`
+  are not resolved, and a cyclic or crafted lock MUST NOT make the action loop.
 - A `follows` line MUST be printed only when exactly one root input matches.
 - With `pin-form` on, every root input with a node MUST use the form of
   [FY-0016][fy-0016], with `original.rev` equal to `locked.rev`,

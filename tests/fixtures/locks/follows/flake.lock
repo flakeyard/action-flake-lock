@@ -30,7 +30,11 @@
       }
     },
     "x": {
-      "inputs": { "loop": ["a", "x", "loop"], "deep": ["a", "y"] },
+      "inputs": {
+        "back": "a",
+        "loop": ["a", "x", "loop"],
+        "deep": ["a", "y"]
+      },
       "locked": {
         "type": "github",
         "owner": "o",
