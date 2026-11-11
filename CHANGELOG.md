@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/flakeyard/action-flake-lock/compare/v0.2.1...v0.2.2) (2026-11-11)
+
+
+### Bug Fixes
+
+* **deps:** update flakeyard/action-shell-lib action to v0.1.4 ([#36](https://github.com/flakeyard/action-flake-lock/issues/36)) ([64660a7](https://github.com/flakeyard/action-flake-lock/commit/64660a7c79a0fb11b1842c182950c73b3446e17f))
+
 ## [0.2.1](https://github.com/flakeyard/action-flake-lock/compare/v0.2.0...v0.2.1) (2026-11-11)
 
 
