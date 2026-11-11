@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: flakeyard/action-setup-nix@feaa363e1aa0007d70c643731c508bb40190ce83 # v0.1.2
+      - uses: flakeyard/action-setup-nix@0a6360ba8fee1bb4da86d28ec4a1d204aa047be3 # v0.1.4
       - name: End of life of the nixpkgs branch
         shell: bash
         run: nix run --no-update-lock-file ./dev#check-eol -- nixpkgs-eol
