@@ -6,7 +6,7 @@ date: 2026-11-07
 supersedes: []
 superseded_by: []
 related: [ADR-0001]
-affects: ["action.yml", "scripts/**", "tests/**", "nixpkgs-eol"]
+affects: ["action.yml", "scripts/**", "tests/**"]
 review_by:
 ---
 

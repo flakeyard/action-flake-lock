@@ -50,7 +50,7 @@ not support.
 - `allow-duplicates` (default empty): normalized sources that may be locked more
   than once, one per line, such as `github.com/nixos/nixpkgs` or
   `github.com/<owner>/<repo>?dir=<dir>`. A second nixpkgs for a tool that is
-  broken on the stable branch ([FY-0026][fy-0026]) goes here.
+  broken on the stable branch ([FY-0036][fy-0036]) goes here.
 - `pin-form` (default `true`): `false` switches the pin form rule off.
 - `nixpkgs-eol` (default `true`): `false` switches the end of life rule off.
 - `github-token` (default `github.token`): reads the releases of flakeyard
@@ -147,10 +147,11 @@ x86_64 and arm64 runners: the job `tools` runs the action on the root
 `flake.lock`, which consumers get, then builds every package of the root flake
 and checks that each yields one store path, the job `action` runs the action on
 a lock that passes and on one that breaks every rule, and
-[workflow-check][workflow-check] builds the checks of `./dev`, checks the pull
-request title, `renovate.json` and the release behind its preset tag, and
-reports `check / required`. Before a pull request, run actionlint, zizmor,
-prettier, markdownlint, typos and `reuse lint`.
+[workflow-check][workflow-check] checks `dev/flake.lock` with a release of this
+action ([workflow-check ADR-0002][wc-adr-0002]), builds the checks of `./dev`,
+checks the pull request title, `renovate.json` and the release behind its preset
+tag, and reports `check / required`. Before a pull request, run actionlint,
+zizmor, prettier, markdownlint, typos and `reuse lint`.
 
 The weekly scheduled run of `test.yaml` checks the end of life of nixpkgs in the
 root `flake.lock` with the action itself and in `dev/flake.lock` through
@@ -172,10 +173,6 @@ yet. Until they are:
 
 - actionlint, zizmor, prettier, markdownlint, typos and REUSE run locally before
   every pull request; the atoms will provide them.
-- The CI of this repository uses workflow-check 0.1.x, which does not run this
-  action yet; the jobs `tools` and `action` run it on the root `flake.lock` and
-  on its own fixtures instead. workflow-check adopts the action in its first
-  pull request after the first release ([workflow-check ADR-0002][wc-adr-0002]).
 
 ## License
 
@@ -199,8 +196,6 @@ yet. Until they are:
   https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0017-atom-contract.md
 [fy-0024]:
   https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0024-versioning-and-support.md
-[fy-0026]:
-  https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0026-stable-nixpkgs.md
 [fy-0036]:
   https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0036-check-the-end-of-life-of-nixpkgs-in-flake-lock.md
 [fy-0030]:
