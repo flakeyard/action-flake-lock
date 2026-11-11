@@ -1,5 +1,4 @@
-# The action, its scripts and tests, and the files the tests compare, as one
-# source for the checks.
+# The action, its workflows, scripts and tests, as one source for the checks.
 {
   perSystem =
     { pkgs, ... }:
@@ -11,9 +10,6 @@
           ../../.github/workflows
           ../../scripts
           ../../tests
-          ../../flake.lock
-          ../../nixpkgs-eol
-          ../flake.lock
         ];
       };
     };

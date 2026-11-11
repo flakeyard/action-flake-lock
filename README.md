@@ -152,12 +152,11 @@ request title, `renovate.json` and the release behind its preset tag, and
 reports `check / required`. Before a pull request, run actionlint, zizmor,
 prettier, markdownlint, typos and `reuse lint`.
 
-[`maintenance.yaml`](.github/workflows/maintenance.yaml) checks every week that
-the nixpkgs branch recorded in [`nixpkgs-eol`](nixpkgs-eol) is still supported
-([FY-0026][fy-0026]). The file, its script and the job go once every repository
-runs a release of workflow-check with the end of life rule
-([ADR-0002][adr-0002]). Renovate updates the nixpkgs of the root flake once a
-month as a `fix`, since a new release of the action ships the new tools.
+The weekly scheduled run of `test.yaml` checks the end of life of nixpkgs in the
+root `flake.lock` with the action itself and in `dev/flake.lock` through
+workflow-check ([ADR-0002][adr-0002]). Renovate updates the nixpkgs of the root
+flake once a month as a `fix`, since a new release of the action ships the new
+tools.
 
 [`scorecard.yaml`](.github/workflows/scorecard.yaml) runs OpenSSF Scorecard with
 [workflow-scorecard][workflow-scorecard]. The repository releases itself with
