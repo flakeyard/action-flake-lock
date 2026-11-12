@@ -6,13 +6,15 @@
 
 _None._
 
-## Accepted (3)
+## Accepted (4)
 
 - [ADR-0001](records/0001-check-flake-lock.md) Check flake.lock (2026-11-05)
 - [ADR-0002](records/0002-end-of-life-of-nixpkgs.md) End of life of nixpkgs
   (2026-11-07)
 - [ADR-0003](records/0003-substitute-the-tools-from-recorded-store-paths.md)
   Substitute the tools from recorded store paths (2026-11-12)
+- [ADR-0004](records/0004-warn-about-a-newer-major-version-of-flakeyard-inputs.md)
+  Warn about a newer major version of flakeyard inputs (2026-11-12)
 
 ## Rejected (0)
 
