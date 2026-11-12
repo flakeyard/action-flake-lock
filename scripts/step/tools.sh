@@ -18,7 +18,7 @@ readonly TOOLS=(jq gh)
 
 main() {
   local nix system name
-  nix=$(job_nix) || fail "No nix on PATH: install Nix with flakes enabled before this action, such as with flakeyard/action-setup-nix."
+  nix=$(job_tool nix) || fail "No nix on PATH: install Nix with flakes enabled before this action, such as with flakeyard/action-setup-nix."
   system=$(job_system "$nix") || fail "Cannot read the system of $nix."
   rm -rf -- "$STATE_DIR"
   for name in "${TOOLS[@]}"; do
