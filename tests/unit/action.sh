@@ -12,7 +12,7 @@ readonly INPUTS='["path", "allow-duplicates", "pin-form", "nixpkgs-eol", "github
 
 if require_yq action.yml; then
   action=$(load_yaml action.yml)
-  check_action_steps "$action"
+  check_action_steps action.yml
   check_library_pins
 
   yaml_check "$action" "action: the scripts of the steps, in order" \
