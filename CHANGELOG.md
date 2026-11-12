@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.3](https://github.com/flakeyard/action-flake-lock/compare/v0.2.2...v0.2.3) (2026-11-12)
+
+
+### Bug Fixes
+
+* adopt job_tool of action-shell-lib v0.3.0 ([#46](https://github.com/flakeyard/action-flake-lock/issues/46)) ([b1fe30a](https://github.com/flakeyard/action-flake-lock/commit/b1fe30a4445f2dc8927c0010291efd585ec4aed0))
+* **deps:** update flakeyard/action-shell-lib action to v0.2.0 ([#42](https://github.com/flakeyard/action-flake-lock/issues/42)) ([039dde6](https://github.com/flakeyard/action-flake-lock/commit/039dde6b00a151ff7900e3b009803542314217e9))
+
+
+### Performance Improvements
+
+* substitute the tools from the store paths in tools.nix ([#43](https://github.com/flakeyard/action-flake-lock/issues/43)) ([53a77d8](https://github.com/flakeyard/action-flake-lock/commit/53a77d8623779861b4864f29b7fb92599396af8e))
+
 ## [0.2.2](https://github.com/flakeyard/action-flake-lock/compare/v0.2.1...v0.2.2) (2026-11-11)
 
 
