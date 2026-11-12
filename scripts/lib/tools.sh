@@ -10,13 +10,6 @@ TOOLS_DIR=$STATE_DIR/tools
 # `nix run ./dev#update-tools` and checked by dev/flake.nix.
 TOOLS_FILE=$ACTION_DIR/tools.nix
 
-# job_nix: prints the absolute path of nix on the PATH of the job.
-job_nix() {
-  local nix
-  # shellcheck disable=SC2154 # JOB_PATH is set by step_environment
-  nix=$(PATH=$JOB_PATH type -P nix) && [[ $nix == /* ]] && printf '%s\n' "$nix"
-}
-
 # is_one_path TEXT: TEXT is one absolute path on one line.
 is_one_path() {
   local text=$1
