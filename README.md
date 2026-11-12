@@ -129,6 +129,13 @@ that the action runs. See [VERSIONING][versioning].
 
 ## Development
 
+Open the repository in its dev container,
+[`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json), with
+"Reopen in Container" in VS Code or `devcontainer up --workspace-folder .`. It
+has Nix, and the checks below run in it as in CI; tools that the image does not
+have come from nixpkgs, such as `nix run nixpkgs#actionlint`. Nix on the host
+works as well.
+
 The root [`flake.nix`](flake.nix) holds only the tools that the action runs,
 `jq` and `gh`, from one pinned nixpkgs. The checks of the repository live in
 [`dev/flake.nix`](dev/flake.nix), with its own lock, so that consumers fetch
@@ -138,8 +145,8 @@ flake) and `unit` ([`tests/run.sh`](tests/run.sh)). The `unit` check fetches the
 shell library at the commit that [`action.yml`](action.yml) pins and gives it to
 the tests as `SHELL_LIB`, whose harness and stubs of `gh`, `date` and `sleep`
 they use. Alone, `tests/run.sh` needs `SHELL_LIB` set to a checkout of the
-library and mikefarah `yq`, such as from `nix shell nixpkgs#yq-go`. Run the
-checks with:
+library, mikefarah `yq` and `jq`, such as from
+`nix shell nixpkgs#yq-go nixpkgs#jq`. Run the checks with:
 
 ```sh
 nix flake check --no-update-lock-file ./dev
