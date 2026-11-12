@@ -13,13 +13,22 @@ flake, so it runs before the project's flake is evaluated ([FY-0017][fy-0017]).
 ## Usage
 
 ```yaml
+name: check
+
 on:
   pull_request:
   schedule:
     - cron: "23 4 * * 1"
 
+permissions: {}
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   flake:
+    name: flake
     runs-on: ubuntu-24.04
     permissions:
       contents: read
