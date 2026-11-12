@@ -111,11 +111,12 @@ version and on a missing lock file.
   such as from [action-setup-nix][action-setup-nix]. The action does not install
   Nix. Determinate Nix and Lix are not tested.
 - `git` and `bash` of the runner.
+- cache.nixos.org as a trusted substituter of that `nix`, as Nix has by default.
 
-The action builds `jq` and `gh` from its own [`flake.nix`](flake.nix), whose
-only input is nixpkgs, with `--no-update-lock-file`, and runs them by their
-store paths; it never writes `$GITHUB_PATH`. The first run on a runner fetches
-that nixpkgs.
+The action runs the `jq` and `gh` of its own [`flake.nix`](flake.nix), whose
+only input is nixpkgs, by the store paths that [`tools.nix`](tools.nix) records
+for each system ([ADR-0003][adr-0003]). It substitutes them from the binary
+cache without evaluating nixpkgs, and never writes `$GITHUB_PATH`.
 
 ## Versioning
 
@@ -131,12 +132,14 @@ that the action runs. See [VERSIONING][versioning].
 The root [`flake.nix`](flake.nix) holds only the tools that the action runs,
 `jq` and `gh`, from one pinned nixpkgs. The checks of the repository live in
 [`dev/flake.nix`](dev/flake.nix), with its own lock, so that consumers fetch
-none of them: `formatting` (nixfmt), `shell` (shellcheck and shfmt) and `unit`
-([`tests/run.sh`](tests/run.sh)). The `unit` check fetches the shell library at
-the commit that [`action.yml`](action.yml) pins and gives it to the tests as
-`SHELL_LIB`, whose harness and stubs of `gh`, `date` and `sleep` they use.
-Alone, `tests/run.sh` needs `SHELL_LIB` set to a checkout of the library and
-mikefarah `yq`, such as from `nix shell nixpkgs#yq-go`. Run the checks with:
+none of them: `formatting` (nixfmt), `shell` (shellcheck and shfmt), `tools`
+([`tools.nix`](tools.nix) records the store paths of the packages of the root
+flake) and `unit` ([`tests/run.sh`](tests/run.sh)). The `unit` check fetches the
+shell library at the commit that [`action.yml`](action.yml) pins and gives it to
+the tests as `SHELL_LIB`, whose harness and stubs of `gh`, `date` and `sleep`
+they use. Alone, `tests/run.sh` needs `SHELL_LIB` set to a checkout of the
+library and mikefarah `yq`, such as from `nix shell nixpkgs#yq-go`. Run the
+checks with:
 
 ```sh
 nix flake check --no-update-lock-file ./dev
@@ -157,7 +160,12 @@ The weekly scheduled run of `test.yaml` checks the end of life of nixpkgs in the
 root `flake.lock` with the action itself and in `dev/flake.lock` through
 workflow-check ([ADR-0002][adr-0002]). Renovate updates the nixpkgs of the root
 flake once a month as a `fix`, since a new release of the action ships the new
-tools.
+tools. Its pull request fails the check `tools` until `tools.nix` is regenerated
+on its branch with:
+
+```sh
+nix run ./dev#update-tools
+```
 
 [`scorecard.yaml`](.github/workflows/scorecard.yaml) runs OpenSSF Scorecard with
 [workflow-scorecard][workflow-scorecard]. The repository releases itself with
@@ -182,6 +190,8 @@ yet. Until they are:
 [action-shell-lib]: https://github.com/flakeyard/action-shell-lib
 [adr-0001]: docs/adr/records/0001-check-flake-lock.md
 [adr-0002]: docs/adr/records/0002-end-of-life-of-nixpkgs.md
+[adr-0003]:
+  docs/adr/records/0003-substitute-the-tools-from-recorded-store-paths.md
 [versioning]: https://github.com/flakeyard/.github/blob/main/VERSIONING.md
 [wc-adr-0002]:
   https://github.com/flakeyard/workflow-check/blob/main/docs/adr/records/0002-check-flake-lock.md

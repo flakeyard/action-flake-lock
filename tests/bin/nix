@@ -1,15 +1,19 @@
 #!/usr/bin/env bash
-# Stub of nix for tests of the tools step.
+# Stub of nix for tests of the tools step. Every call is appended to $CALLS.
 #
-# "build FLAGS path:DIR#PACKAGE" is appended to $CALLS and prints the lines of
-# $FIXTURES/nix-PACKAGE, the store paths of PACKAGE; it fails when that file
-# is missing, and when FLAGS are not those the action must pass. Other
-# commands are not supported. The stub uses builtins only: it runs with the
-# PATH of the runner.
+# - "config show system" prints $FIXTURES/nix-system.
+# - "eval --raw --file FILE SYSTEM.NAME" prints $FIXTURES/nix-eval-SYSTEM.NAME,
+#   the store path that FILE records, and fails like nix when it is missing.
+# - "build --no-link --print-out-paths PATH" prints the lines of
+#   $FIXTURES/nix-build-BASENAME, BASENAME that of PATH, and fails like nix
+#   when it is missing, as when no substituter has PATH.
+#
+# Other commands and flags are not supported. The stub uses builtins only: it
+# runs with the PATH of the runner.
 set -euo pipefail
 
-readonly FLAGS='--no-link --print-out-paths --no-update-lock-file'
-readonly INSTALLABLE_RE='^path:/.+#([a-z]+)$'
+readonly EVAL_FLAGS='--raw --file'
+readonly BUILD_FLAGS='--no-link --print-out-paths'
 
 # stub_error MESSAGE: fail as the stub, not as Nix.
 stub_error() {
@@ -17,20 +21,43 @@ stub_error() {
   exit 2
 }
 
-# build INSTALLABLE: print the store paths of the package of INSTALLABLE.
-build() {
-  local installable=$1 outputs line
-  [[ $installable =~ $INSTALLABLE_RE ]] || stub_error "unsupported installable $installable"
-  outputs=$FIXTURES/nix-${BASH_REMATCH[1]}
-  if [[ ! -f $outputs ]]; then
-    echo "error: flake does not provide attribute '${BASH_REMATCH[1]}'" >&2
+# print_fixture FILE MESSAGE: print the lines of FILE, or fail as nix with
+# MESSAGE when it is missing.
+print_fixture() {
+  local file=$1 message=$2 line
+  if [[ ! -f $file ]]; then
+    echo "error: $message" >&2
     exit 1
   fi
-  while IFS= read -r line; do printf '%s\n' "$line"; done <"$outputs"
+  while IFS= read -r line; do printf '%s\n' "$line"; done <"$file"
 }
 
-[[ ${1-} == build ]] || stub_error "unsupported: $*"
+# system: print the system of nix.
+system() {
+  [[ "$*" == 'config show system' ]] || stub_error "unsupported: $*"
+  print_fixture "$FIXTURES/nix-system" "no system"
+}
+
+# eval_raw FLAGS FILE ATTRIBUTE: print the value of ATTRIBUTE, without a newline
+# as --raw does.
+eval_raw() {
+  [[ "${*:2:2}" == "$EVAL_FLAGS" && $# == 5 ]] || stub_error "eval without $EVAL_FLAGS FILE ATTRIBUTE: $*"
+  local attribute=$5 value
+  value=$(print_fixture "$FIXTURES/nix-eval-$attribute" "attribute '$attribute' not found")
+  printf '%s' "$value"
+}
+
+# build FLAGS PATH: print the paths that substituting PATH yields.
+build() {
+  [[ "${*:2:2}" == "$BUILD_FLAGS" && $# == 4 ]] || stub_error "build without $BUILD_FLAGS PATH: $*"
+  local path=$4
+  print_fixture "$FIXTURES/nix-build-${path##*/}" "path '$path' is required, but there is no substituter that can build it"
+}
+
 echo "nix $*" >>"$CALLS"
-[[ "${*:2:3}" == "$FLAGS" ]] || stub_error "build without $FLAGS: $*"
-(($# == 5)) || stub_error "build of more than one installable: $*"
-build "$5"
+case ${1-} in
+  config) system "$@" ;;
+  eval) eval_raw "$@" ;;
+  build) build "$@" ;;
+  *) stub_error "unsupported: $*" ;;
+esac
