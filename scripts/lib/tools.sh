@@ -1,10 +1,14 @@
 # shellcheck shell=bash
-# The tools of the action, jq and gh, built from its own flake with the nix of
-# the job (ADR-0001). Sourced after env.sh and the report.sh of the shell
+# The tools of the action, jq and gh, substituted with the nix of the job from
+# the store paths that tools.nix records for the packages of its own flake
+# (ADR-0001, ADR-0003). Sourced after env.sh and the report.sh of the shell
 # library, not run.
 
 # The store path of each tool, in a file named after it.
 TOOLS_DIR=$STATE_DIR/tools
+# The store path of each package of the root flake, by system; generated with
+# `nix run ./dev#update-tools` and checked by dev/flake.nix.
+TOOLS_FILE=$ACTION_DIR/tools.nix
 
 # job_nix: prints the absolute path of nix on the PATH of the job.
 job_nix() {
@@ -26,20 +30,37 @@ record_tool() {
   printf '%s\n' "$path" >"$TOOLS_DIR/$name"
 }
 
-# build_tool NIX NAME: builds the package NAME of the action's flake with NIX,
-# as locked, and records its store path; fails unless the build prints
-# exactly one path, since a package with several outputs prints one each.
-build_tool() {
-  local nix=$1 name=$2 paths
-  paths=$("$nix" build --no-link --print-out-paths --no-update-lock-file "path:$ACTION_DIR#$name") || {
-    error "Cannot build $name from the flake of the action."
+# job_system NIX: prints the system of NIX, such as x86_64-linux.
+job_system() {
+  local nix=$1
+  "$nix" config show system
+}
+
+# substitute NIX NAME PATH: substitutes PATH, the store path of the tool NAME,
+# with NIX; fails unless nix prints exactly PATH.
+substitute() {
+  local nix=$1 name=$2 path=$3 printed
+  printed=$("$nix" build --no-link --print-out-paths "$path") || {
+    error "Cannot substitute $name from $path: the binary cache of nixpkgs, such as cache.nixos.org, must be a trusted substituter."
     return 1
   }
-  if ! is_one_path "$paths"; then
-    error "nix build of $name printed '${paths//$'\n'/ }', expected one store path."
+  if [[ $printed != "$path" ]]; then
+    error "nix build of $name printed '${printed//$'\n'/ }', expected $path."
     return 1
   fi
-  record_tool "$name" "$paths"
+}
+
+# realise_tool NIX SYSTEM NAME: substitutes the store path that tools.nix
+# records for the tool NAME on SYSTEM, without evaluating nixpkgs, and records
+# it; fails unless tools.nix records exactly one path.
+realise_tool() {
+  local nix=$1 system=$2 name=$3 path
+  if ! path=$("$nix" eval --raw --file "$TOOLS_FILE" "$system.$name") || ! is_one_path "$path"; then
+    error "tools.nix records no store path of $name for $system."
+    return 1
+  fi
+  substitute "$nix" "$name" "$path" || return 1
+  record_tool "$name" "$path"
 }
 
 # tool NAME: prints the executable of the tool NAME that the step tools built;
