@@ -1,15 +1,15 @@
 # The action, its workflows, scripts and tests, as one source for the checks.
 {
   perSystem =
-    { pkgs, ... }:
+    { pkgs, root, ... }:
     {
       _module.args.sources = pkgs.lib.fileset.toSource {
-        root = ../..;
+        inherit root;
         fileset = pkgs.lib.fileset.unions [
-          ../../action.yml
-          ../../.github/workflows
-          ../../scripts
-          ../../tests
+          (root + "/action.yml")
+          (root + "/.github/workflows")
+          (root + "/scripts")
+          (root + "/tests")
         ];
       };
     };

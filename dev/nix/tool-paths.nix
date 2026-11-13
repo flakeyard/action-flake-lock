@@ -3,16 +3,16 @@
 # without context, so that nothing depends on building the tools.
 {
   perSystem =
-    { lib, ... }:
+    { lib, root, ... }:
     let
-      lock = lib.importJSON ../../flake.lock;
+      lock = lib.importJSON (root + "/flake.lock");
       source = builtins.fetchTree lock.nodes.${lock.nodes.root.inputs.nixpkgs}.locked;
       # nixpkgs called as a flake: its flake.nix has no inputs but itself.
       nixpkgs = source // (import "${source}/flake.nix").outputs { self = nixpkgs; };
-      root = (import ../../flake.nix).outputs { inherit nixpkgs; };
+      rootFlake = (import (root + "/flake.nix")).outputs { inherit nixpkgs; };
       outPath = package: builtins.unsafeDiscardStringContext package.outPath;
     in
     {
-      _module.args.toolPaths = lib.mapAttrs (_: lib.mapAttrs (_: outPath)) root.packages;
+      _module.args.toolPaths = lib.mapAttrs (_: lib.mapAttrs (_: outPath)) rootFlake.packages;
     };
 }
