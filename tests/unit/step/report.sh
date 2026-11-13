@@ -13,7 +13,7 @@ given_findings() {
 # no_findings: no rule found anything.
 no_findings() {
   local rule
-  for rule in duplicates pin-form release nixpkgs-eol; do given_findings "$rule" '[]'; done
+  for rule in duplicates pin-form release nixpkgs-eol newer-major; do given_findings "$rule" '[]'; done
 }
 
 # findings_of COUNT: COUNT findings of pin-form as JSON.
@@ -86,6 +86,7 @@ given_tools
 given_findings duplicates '[]'
 given_findings release '[]'
 given_findings nixpkgs-eol '[]'
+given_findings newer-major '[]'
 run "report: pin-form off has no findings" ok scripts/step/report.sh PIN_FORM=false
 finish
 
@@ -94,7 +95,17 @@ given_tools
 given_findings duplicates '[]'
 given_findings pin-form '[]'
 given_findings release '[]'
+given_findings newer-major '[]'
 run "report: nixpkgs-eol off has no findings" ok scripts/step/report.sh NIXPKGS_EOL=false
+finish
+
+action_setup
+given_tools
+given_findings duplicates '[]'
+given_findings pin-form '[]'
+given_findings release '[]'
+given_findings nixpkgs-eol '[]'
+run "report: newer-major off has no findings" ok scripts/step/report.sh NEWER_MAJOR=false
 finish
 
 action_setup
@@ -155,6 +166,39 @@ expect errors 10
 expect warnings 10
 expect message "::error::3 more errors are not shown here; the job summary lists all of them."
 expect message "::warning::3 more warnings are not shown here; the job summary lists all of them."
+finish
+
+# --- warnings of a newer major version ------------------------------
+
+# major_findings_of COUNT: COUNT warnings of newer-major as JSON.
+major_findings_of() {
+  jq -cn --argjson count "$1" \
+    '[range(1; $count + 1) | {rule: "newer-major", input: "inputs.m\(.)", message: "major \(.)", level: "warning"}]'
+}
+
+action_setup
+given_tools
+no_findings
+given_findings newer-major "$(major_findings_of 1)"
+run "report: a newer major version warns and passes" ok scripts/step/report.sh
+expect message "::warning file=flake.lock,title=Newer major version%3A inputs.m1::major 1"
+expect message "::notice::flake.lock passes every check of action-flake-lock."
+expect errors 0
+expect summary '| Newer major version (warning) | `inputs.m1` | `major 1` |'
+finish
+
+action_setup
+given_tools
+no_findings
+given_findings nixpkgs-eol "$(eol_findings_of 6 warning)"
+given_findings newer-major "$(major_findings_of 6)"
+run "report: both warning rules share 10 warnings" ok scripts/step/report.sh
+expect warnings 10
+expect message "title=End of life of nixpkgs%3A inputs.n6::eol 6"
+expect message "title=Newer major version%3A inputs.m3::major 3"
+expect no-message "inputs.m4::"
+expect message "::warning::3 more warnings are not shown here; the job summary lists all of them."
+expect summary '`inputs.m6`'
 finish
 
 # --- names of the lock -------------------------------------------

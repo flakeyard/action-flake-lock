@@ -9,15 +9,22 @@ releases_request() {
   printf '%s\n' "graphql?owner=flakeyard&name=$repo"
 }
 
+# The time at which a release was published unless RELEASE gives another.
+readonly DEFAULT_PUBLISHED=2026-01-01T12:00:00Z
+
 # release_node RELEASE: a release of the API from RELEASE, TAG=COMMIT with
-# :mutable or :draft after it for such a release.
+# :mutable, :draft or :prerelease after it for such a release, and @TIME of
+# publishedAt after that, DEFAULT_PUBLISHED by default.
 release_node() {
-  local release=$1 tag commit kind immutable=true draft=false
+  local release=${1%@*} published=$DEFAULT_PUBLISHED tag commit kind
+  local immutable=true draft=false prerelease=false
+  [[ $1 != *@* ]] || published=${1##*@}
   IFS='=:' read -r tag commit kind <<<"$release"
   [[ $kind != mutable ]] || immutable=false
   [[ $kind != draft ]] || draft=true
-  printf '{"tagName":"%s","isDraft":%s,"immutable":%s,"tagCommit":{"oid":"%s"}}' \
-    "$tag" "$draft" "$immutable" "$commit"
+  [[ $kind != prerelease ]] || prerelease=true
+  printf '{"tagName":"%s","isDraft":%s,"isPrerelease":%s,"immutable":%s,"publishedAt":"%s","tagCommit":{"oid":"%s"}}' \
+    "$tag" "$draft" "$prerelease" "$immutable" "$published" "$commit"
 }
 
 # release_page REPO PAGE RELEASE...: page PAGE of the releases of

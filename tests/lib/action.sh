@@ -45,7 +45,7 @@ action_setup() {
   apply PATH="$root/tests/bin:$sysbin" HOME="$work/home" SHELL_LIB="$shell_lib" \
     RUNNER_TEMP="$work/temp" GITHUB_WORKSPACE="$work/workspace" \
     GITHUB_SERVER_URL=https://github.com GITHUB_EVENT_NAME=pull_request \
-    LOCK_PATH=flake.lock PIN_FORM=true NIXPKGS_EOL=true ALLOW_DUPLICATES=
+    LOCK_PATH=flake.lock PIN_FORM=true NIXPKGS_EOL=true NEWER_MAJOR=true ALLOW_DUPLICATES=
   fixed_time "$DEFAULT_TIME"
 }
 

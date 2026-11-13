@@ -12,6 +12,11 @@
 
   outputs =
     inputs:
+    let
+      # The root of the repository (FY-0039): the other Nix files reach its
+      # files only as root + "/<path from the root>".
+      root = ../.;
+    in
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [
         "x86_64-linux"
@@ -19,5 +24,7 @@
       ];
       # Every file under nix/ is a flake-parts module.
       imports = [ (inputs.import-tree ./nix) ];
+      _module.args.root = root;
+      perSystem._module.args.root = root;
     };
 }

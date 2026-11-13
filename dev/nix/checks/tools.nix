@@ -5,6 +5,7 @@
     {
       pkgs,
       lib,
+      root,
       toolPaths,
       ...
     }:
@@ -33,7 +34,7 @@
             ++ map (entry: "  evaluated: ${entry}") missing
             ++ [ "Run `nix run ./dev#update-tools` in the root of the repository and commit tools.nix." ]
           );
-      recorded = import ../../../tools.nix;
+      recorded = import (root + "/tools.nix");
       # The mutation that the check must catch: the path of gh as that of jq.
       mutated = lib.recursiveUpdate toolPaths { x86_64-linux.jq = toolPaths.x86_64-linux.gh; };
     in

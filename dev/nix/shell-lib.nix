@@ -2,10 +2,10 @@
 # commit is read from action.yml, so the repository pins it once.
 {
   perSystem =
-    { ... }:
+    { root, ... }:
     let
       pin = builtins.match ".*uses: flakeyard/action-shell-lib@([0-9a-f]{40}) .*" (
-        builtins.readFile ../../action.yml
+        builtins.readFile (root + "/action.yml")
       );
     in
     {

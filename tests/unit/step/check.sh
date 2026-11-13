@@ -79,7 +79,7 @@ run "check: a named pipe" fail scripts/step/check.sh
 expect message "The lock file flake.lock is not a regular file."
 finish
 
-# --- allow-duplicates, pin-form and nixpkgs-eol -------------------
+# --- allow-duplicates and the switches of the rules ---------------
 
 action_setup
 lock_fixture
@@ -97,7 +97,7 @@ for source in github.com/NixOS/nixpkgs gitlab.com/o/r github.com/o "github.com/o
   finish
 done
 
-for input in PIN_FORM=pin-form NIXPKGS_EOL=nixpkgs-eol; do
+for input in PIN_FORM=pin-form NIXPKGS_EOL=nixpkgs-eol NEWER_MAJOR=newer-major; do
   for value in false true; do
     action_setup
     lock_fixture
@@ -126,8 +126,9 @@ finish
 
 action_setup
 run "check: reports every problem at once" fail scripts/step/check.sh \
-  GITHUB_SERVER_URL=https://ghes.example.com ALLOW_DUPLICATES=x PIN_FORM=no NIXPKGS_EOL=no
-expect errors 5
+  GITHUB_SERVER_URL=https://ghes.example.com ALLOW_DUPLICATES=x PIN_FORM=no NIXPKGS_EOL=no \
+  NEWER_MAJOR=no
+expect errors 6
 finish
 
 # twelve_sources: twelve sources of allow-duplicates that are not normalized.

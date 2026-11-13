@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # Looks up the releases of every flakeyard repository of the lock with the gh
 # of the action, once per repository and for at most MAX_REPOSITORIES of them,
-# and applies the release rule into FINDINGS_DIR. An input whose releases
-# could not be looked up is a finding of its own, which fails the run as well.
-# The only step that gets the token.
+# and applies the release rule, and the newer major version rule unless it is
+# off, into FINDINGS_DIR. An input whose releases could not be looked up is a
+# finding of its own of the release rule, which fails the run as well. The
+# only step that gets the token.
 #
-# Inputs (environment): TOKEN.
+# Inputs (environment): TOKEN, NEWER_MAJOR.
 set -euo pipefail
 # Builtins only until lib/env.sh replaces PATH, which is the job's.
 lib=${BASH_SOURCE[0]%/*}/../lib
@@ -31,7 +32,7 @@ readonly RELEASES_QUERY='query($owner: String!, $name: String!, $endCursor: Stri
   repository(owner: $owner, name: $name) {
     releases(first: 100, after: $endCursor) {
       pageInfo { hasNextPage endCursor }
-      nodes { tagName isDraft immutable tagCommit { oid } }
+      nodes { tagName isDraft isPrerelease immutable publishedAt tagCommit { oid } }
     }
   }
 }'
@@ -40,6 +41,10 @@ readonly RELEASES_QUERY='query($owner: String!, $name: String!, $endCursor: Stri
 readonly REPOSITORIES_PROGRAM='include "releases"; $parsed[0] | flakeyard_repositories[]'
 # shellcheck disable=SC2016 # variables of jq
 readonly FINDINGS_PROGRAM='include "forms"; include "releases"; $parsed[0] | [release_findings($lookups; rev_form)]'
+# The program of the newer major version rule, with the time as $now.
+# shellcheck disable=SC2016 # variables of jq
+readonly NEWER_MAJOR_PROGRAM='include "releases"; include "newer-major";
+  $parsed[0] | [newer_major_findings($lookups; $now; flakeyard_nodes; major(.original.ref))]'
 # The lookup of a repository, from its GraphQL pages or the reason it failed.
 # shellcheck disable=SC2016 # variables of jq
 readonly RELEASES_PROGRAM='include "releases"; {repo: $repo, releases: ([inputs] | releases)}'
@@ -94,6 +99,15 @@ look_up_all() {
   done
 }
 
+# apply_newer_major: the findings of the newer major version rule, today,
+# which the tests set with a stub of date.
+apply_newer_major() {
+  local now
+  now=$(date -u +%s)
+  parsed_jq "$NEWER_MAJOR_PROGRAM" --slurpfile lookups "$LOOKUPS" --argjson now "$now" \
+    >"$FINDINGS_DIR/newer-major.json"
+}
+
 main() {
   local gh listed repos=()
   # The jq of the action, for parsed_jq and the records.
@@ -107,6 +121,9 @@ main() {
   look_up_all "${repos[@]}"
   mkdir -p -- "$FINDINGS_DIR"
   parsed_jq "$FINDINGS_PROGRAM" --slurpfile lookups "$LOOKUPS" >"$FINDINGS_DIR/release.json"
+  if [[ ${NEWER_MAJOR-} != false ]]; then
+    apply_newer_major
+  fi
 }
 
 main "$@"
