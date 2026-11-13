@@ -3,7 +3,8 @@
 # problem at once. The step of the shell library before it rejects runners
 # other than GitHub-hosted Linux on X64 and ARM64.
 #
-# Inputs (environment): LOCK_PATH, ALLOW_DUPLICATES, PIN_FORM, NIXPKGS_EOL.
+# Inputs (environment): LOCK_PATH, ALLOW_DUPLICATES, PIN_FORM, NIXPKGS_EOL,
+# NEWER_MAJOR.
 set -euo pipefail
 # Builtins only until lib/env.sh replaces PATH, which is the job's.
 lib=${BASH_SOURCE[0]%/*}/../lib
@@ -48,6 +49,7 @@ main() {
   check_allow_duplicates
   check_boolean pin-form "${PIN_FORM-}"
   check_boolean nixpkgs-eol "${NIXPKGS_EOL-}"
+  check_boolean newer-major "${NEWER_MAJOR-}"
   if has_problems; then
     flush
     exit 1

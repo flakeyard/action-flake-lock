@@ -24,13 +24,15 @@ def flakeyard_nodes: .nodes[] | select(.source.flakeyard);
 def flakeyard_repositories: [flakeyard_nodes | .source.repo] | unique;
 
 # releases: the immutable published releases vX.Y.Z of the GraphQL pages of
-# releases, each with its version and the commit of its tag.
+# releases, each with its version, the commit of its tag, whether it is a
+# pre-release and when it was published.
 def releases:
   [.[] | .data.repository.releases.nodes[]?
     | select(.immutable == true and .isDraft == false and (.tagName | test(release_tag_form)))
     | select(.tagCommit.oid | type == "string")
     | {tag: .tagName, commit: .tagCommit.oid}
-    + {version: (.tagName | capture(release_tag_form) | [.major, .minor, .patch] | map(tonumber))}];
+    + {version: (.tagName | capture(release_tag_form) | [.major, .minor, .patch] | map(tonumber))}
+    + {prerelease: (.isPrerelease != false), published: .publishedAt}];
 
 # major($ref): the major version that $ref names, or null.
 def major($ref): first($ref | strings | capture(ref_form) | .major | tonumber) // null;
