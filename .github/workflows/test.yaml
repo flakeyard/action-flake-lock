@@ -99,5 +99,5 @@ jobs:
     with:
       needs: ${{ toJSON(needs) }}
       flake: ./dev
-      expect-checks: '["formatting","shell","tools","unit"]'
+      expect-checks: '["formatting","shell","tools","unit","workflows"]'
       renovate-presets: '["flakeyard/renovate-config"]'

@@ -7,6 +7,14 @@
       url = "git+https://github.com/hercules-ci/flake-parts?ref=main&rev=024633cd702b10285db5cb19b40ad48d2399ba60&shallow=1";
       inputs.nixpkgs-lib.follows = "nixpkgs";
     };
+    git-hooks = {
+      url = "git+https://github.com/cachix/git-hooks.nix?ref=master&rev=204b6977e00caac19e2313015a598543ca7be150&shallow=1";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    atom-workflows = {
+      url = "git+https://github.com/flakeyard/atom-workflows?ref=v0&rev=648f7c488e6284f185c69bc22d9a8b5d971c3ce2&shallow=1";
+      inputs.git-hooks.follows = "git-hooks";
+    };
     import-tree.url = "git+https://github.com/vic/import-tree?ref=main&rev=eb1b52eaecc57f7c136d07ae8a93e724dfecac46&shallow=1";
   };
 
@@ -17,14 +25,28 @@
       # files only as root + "/<path from the root>".
       root = ../.;
     in
-    inputs.flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = [
-        "x86_64-linux"
-        "aarch64-linux"
-      ];
-      # Every file under nix/ is a flake-parts module.
-      imports = [ (inputs.import-tree ./nix) ];
-      _module.args.root = root;
-      perSystem._module.args.root = root;
-    };
+    inputs.flake-parts.lib.mkFlake
+      {
+        # The project of atom-workflows is the whole repository, not dev/.
+        inputs = inputs // {
+          self = inputs.self // {
+            outPath = root;
+          };
+        };
+      }
+      {
+        systems = [
+          "x86_64-linux"
+          "aarch64-linux"
+        ];
+        imports = [
+          inputs.atom-workflows.flakeModules.default
+          # Every file under nix/ is a flake-parts module.
+          (inputs.import-tree ./nix)
+        ];
+        _module.args.root = root;
+        perSystem._module.args.root = root;
+        # Until this repository adopts atom-workspace (FY-0038).
+        perSystem.pre-commit.check.enable = false;
+      };
 }
