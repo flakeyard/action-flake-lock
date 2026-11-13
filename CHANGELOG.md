@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.0](https://github.com/flakeyard/action-flake-lock/compare/v0.2.3...v0.3.0) (2026-11-13)
+
+
+### Features
+
+* add the input newer-major and report newer major versions ([#54](https://github.com/flakeyard/action-flake-lock/issues/54)) ([5aa86f0](https://github.com/flakeyard/action-flake-lock/commit/5aa86f0320e68d5ffedc67edb57c514626b2c4d2))
+* warn about a newer major version of flakeyard inputs ([#53](https://github.com/flakeyard/action-flake-lock/issues/53)) ([8200d05](https://github.com/flakeyard/action-flake-lock/commit/8200d05c1b7bf0bc19dbae368368ac8303b52770))
+
+
+### Bug Fixes
+
+* **deps:** update flakeyard/action-shell-lib action to v0.3.0 - abandoned ([#45](https://github.com/flakeyard/action-flake-lock/issues/45)) ([8e5d3dd](https://github.com/flakeyard/action-flake-lock/commit/8e5d3dd1a8a8379c02b9025d7f74072e946b3a76))
+* **deps:** update flakeyard/action-shell-lib action to v0.3.1 ([#52](https://github.com/flakeyard/action-flake-lock/issues/52)) ([fa1c62f](https://github.com/flakeyard/action-flake-lock/commit/fa1c62f17bfcd952fe760af9c59b1c36a435a83b))
+
 ## [0.2.3](https://github.com/flakeyard/action-flake-lock/compare/v0.2.2...v0.2.3) (2026-11-12)
 
 
