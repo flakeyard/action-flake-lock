@@ -158,20 +158,22 @@ Open the repository in its dev container,
 [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json), with
 "Reopen in Container" in VS Code or `devcontainer up --workspace-folder .`. It
 has Nix, and the checks below run in it as in CI; tools that the image does not
-have come from nixpkgs, such as `nix run nixpkgs#actionlint`. Nix on the host
-works as well.
+have come from nixpkgs, such as `nix run nixpkgs#typos`. Nix on the host works
+as well.
 
 The root [`flake.nix`](flake.nix) holds only the tools that the action runs,
 `jq` and `gh`, from one pinned nixpkgs. The checks of the repository live in
 [`dev/flake.nix`](dev/flake.nix), with its own lock, so that consumers fetch
-none of them: `formatting` (nixfmt), `shell` (shellcheck and shfmt), `tools`
-([`tools.nix`](tools.nix) records the store paths of the packages of the root
-flake) and `unit` ([`tests/run.sh`](tests/run.sh)). The `unit` check fetches the
-shell library at the commit that [`action.yml`](action.yml) pins and gives it to
-the tests as `SHELL_LIB`, whose harness and stubs of `gh`, `date` and `sleep`
-they use. Alone, `tests/run.sh` needs `SHELL_LIB` set to a checkout of the
-library, mikefarah `yq` and `jq`, such as from
-`nix shell nixpkgs#yq-go nixpkgs#jq`. Run the checks with:
+none of them: `formatting` (nixfmt), `shell` (shellcheck and shfmt), `workflows`
+(actionlint and zizmor of [atom-workflows][atom-workflows] over the workflows
+and `action.yml` of the whole repository), `tools` ([`tools.nix`](tools.nix)
+records the store paths of the packages of the root flake) and `unit`
+([`tests/run.sh`](tests/run.sh)). The `unit` check fetches the shell library at
+the commit that [`action.yml`](action.yml) pins and gives it to the tests as
+`SHELL_LIB`, whose harness and stubs of `gh`, `date` and `sleep` they use.
+Alone, `tests/run.sh` needs `SHELL_LIB` set to a checkout of the library,
+mikefarah `yq` and `jq`, such as from `nix shell nixpkgs#yq-go nixpkgs#jq`. Run
+the checks with:
 
 ```sh
 nix flake check --no-update-lock-file ./dev
@@ -185,8 +187,8 @@ a lock that passes and on one that breaks every rule, and
 [workflow-check][workflow-check] checks `dev/flake.lock` with a release of this
 action ([workflow-check ADR-0002][wc-adr-0002]), builds the checks of `./dev`,
 checks the pull request title, `renovate.json` and the release behind its preset
-tag, and reports `check / required`. Before a pull request, run actionlint,
-zizmor, prettier, markdownlint, typos and `reuse lint`.
+tag, and reports `check / required`. Before a pull request, run prettier,
+markdownlint, typos and `reuse lint`.
 
 The weekly scheduled run of `test.yaml` checks the end of life of nixpkgs in the
 root `flake.lock` with the action itself and in `dev/flake.lock` through
@@ -211,8 +213,8 @@ are checked by a dispatched run of `test.yaml`. The design follows
 Following [FY-0022][fy-0022], some checks of this repository are not released
 yet. Until they are:
 
-- actionlint, zizmor, prettier, markdownlint, typos and REUSE run locally before
-  every pull request; the atoms will provide them.
+- prettier, markdownlint, typos and REUSE run locally before every pull request;
+  the atoms will provide them.
 
 ## License
 
@@ -230,6 +232,7 @@ yet. Until they are:
 [wc-adr-0002]:
   https://github.com/flakeyard/workflow-check/blob/main/docs/adr/records/0002-check-flake-lock.md
 [workflow-check]: https://github.com/flakeyard/workflow-check
+[atom-workflows]: https://github.com/flakeyard/atom-workflows
 [workflow-release]: https://github.com/flakeyard/workflow-release
 [workflow-scorecard]: https://github.com/flakeyard/workflow-scorecard
 [fy-0022]:
