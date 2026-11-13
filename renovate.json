@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>flakeyard/renovate-config//internal/action#v0.2.2"],
+  "extends": ["github>flakeyard/renovate-config//internal/action#v0.2.3"],
   "packageRules": [
     {
       "description": "The tools of the action: nixpkgs once a month, a fix release each time (ADR-0001)",
