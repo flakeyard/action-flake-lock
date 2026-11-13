@@ -3,10 +3,11 @@
 # summary, and as annotations of the lock file within the ANNOTATIONS_PER_KIND
 # of each kind of a step, the last of them saying how many more the summary
 # has. Fails when there is any violation: the action has no warn-only mode.
-# Only the end of life of nixpkgs has findings that are warnings or notices,
-# which do not fail the run (ADR-0002).
+# Only the end of life of nixpkgs and the newer major version have findings
+# that are warnings or notices, which do not fail the run (ADR-0002,
+# ADR-0004).
 #
-# Inputs (environment): LOCK_PATH, PIN_FORM, NIXPKGS_EOL.
+# Inputs (environment): LOCK_PATH, PIN_FORM, NIXPKGS_EOL, NEWER_MAJOR.
 set -euo pipefail
 # Builtins only until lib/env.sh replaces PATH, which is the job's.
 lib=${BASH_SOURCE[0]%/*}/../lib
@@ -22,7 +23,7 @@ source "$lib/tools.sh"
 # verified, which the release rule finds.
 # shellcheck disable=SC2016 # variables of jq
 readonly TITLES_PROGRAM='{"duplicates": "Duplicated source", "pin-form": "Pin form", "release": "Release",
-    "nixpkgs-eol": "End of life of nixpkgs"} as $titles
+    "nixpkgs-eol": "End of life of nixpkgs", "newer-major": "Newer major version"} as $titles
   | .[] | (.level // "error"), (if .unverified then "Could not verify" else $titles[.rule] end), .input, .message
   | gsub("\u0000"; "?")'
 # The findings of the rules as one array: violations first, the inputs that
@@ -38,6 +39,7 @@ RULES=(duplicates)
 [[ ${PIN_FORM-} == false ]] || RULES+=(pin-form)
 RULES+=(release)
 [[ ${NIXPKGS_EOL-} == false ]] || RULES+=(nixpkgs-eol)
+[[ ${NEWER_MAJOR-} == false ]] || RULES+=(newer-major)
 readonly RULES
 
 # require_findings: fails unless every rule of RULES wrote its findings.

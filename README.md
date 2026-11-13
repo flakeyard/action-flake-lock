@@ -7,8 +7,10 @@ It fails when the `rev` of a flakeyard input is not the commit of an immutable
 release, when two nodes lock the same source, or when an input of the root is
 not pinned in the form of [FY-0016][fy-0016]. It warns before the nixpkgs branch
 of the lock reaches its end of life, and fails a scheduled run after it
-([FY-0036][fy-0036]). It reads only the lock file and evaluates only its own
-flake, so it runs before the project's flake is evaluated ([FY-0017][fy-0017]).
+([FY-0036][fy-0036]). It warns when the repository of a flakeyard input has
+released a newer major version. It reads only the lock file and evaluates only
+its own flake, so it runs before the project's flake is evaluated
+([FY-0017][fy-0017]).
 
 ## Usage
 
@@ -43,14 +45,13 @@ jobs:
 
 Reference the action by full commit SHA, as above. It has no outputs: it
 succeeds, or fails with every problem of the lock in the job summary and as
-annotations of the lock file. Warnings and notices of the end of life are listed
-there too and do not fail it; past the end of life, only runs of the `schedule`
-event fail, so keep a weekly scheduled run, as above. GitHub shows at most 10
-annotations of each kind per step, so when there are more errors or warnings,
-the tenth of that kind says how many more the summary has. It has no warn-only
-mode. Its first step runs [action-shell-lib][action-shell-lib], the shell
-library of its other steps, which fails the job on a runner that the action does
-not support.
+annotations of the lock file. Warnings and notices are listed there too and do
+not fail it; past the end of life, only runs of the `schedule` event fail, so
+keep a weekly scheduled run, as above. GitHub shows at most 10 annotations of
+each kind per step, so when there are more errors or warnings, the tenth of that
+kind says how many more the summary has. It has no warn-only mode. Its first
+step runs [action-shell-lib][action-shell-lib], the shell library of its other
+steps, which fails the job on a runner that the action does not support.
 
 ## Inputs
 
@@ -62,16 +63,19 @@ not support.
   broken on the stable branch ([FY-0036][fy-0036]) goes here.
 - `pin-form` (default `true`): `false` switches the pin form rule off.
 - `nixpkgs-eol` (default `true`): `false` switches the end of life rule off.
+- `newer-major` (default `true`): `false` switches the newer major version rule
+  off.
 - `github-token` (default `github.token`): reads the releases of flakeyard
   repositories through the GraphQL API. It needs no permissions; it is
   validated, masked and given only to the step that looks up releases.
 
 ## Rules
 
-The rules are those of [ADR-0001][adr-0001] and [ADR-0002][adr-0002]. Only the
-end of life writes warnings and notices; the other rules report violations,
-which fail the run. A flakeyard input is a node whose locked source is a
-repository of the owner `flakeyard` on `github.com`, in any case.
+The rules are those of [ADR-0001][adr-0001], [ADR-0002][adr-0002] and
+[ADR-0004][adr-0004]. Only the end of life and the newer major version write
+warnings and notices; the other rules report violations, which fail the run. A
+flakeyard input is a node whose locked source is a repository of the owner
+`flakeyard` on `github.com`, in any case.
 
 - **Release**, always on: the `rev` of every flakeyard input is the commit of
   the tag of an immutable GitHub release `vX.Y.Z`, and its `ref`, when set, is
@@ -105,6 +109,18 @@ repository of the owner `flakeyard` on `github.com`, in any case.
   other branch, or no `ref`, gets a notice that its end of life is not known.
   Every message says to switch to the next stable branch. The dates are part of
   the action: a change of the NixOS support policy is a release of it.
+- **Newer major version**, on unless `newer-major` is `false`: one warning for
+  every flakeyard input whose repository has released a major version above its
+  own, which its `ref` names or, without a `ref`, the newest release of its
+  `rev`. Only immutable releases `vX.Y.Z` that are neither drafts nor
+  pre-releases count, so a `v0` input warns once `v1.0.0` exists. The warning
+  names the newest major version with its first release and that release's date,
+  the newest release, the support of the input's major version under
+  [FY-0024][fy-0024], 6 months from the first release of the next major version,
+  and the release notes of the first release of every newer major version, which
+  have the migration guides. It reads the releases that the release rule looked
+  up, and never fails the run: an input whose releases could not be looked up
+  gets no warning, since the release rule reports it.
 
 The action reads lock files of versions 5, 6 and 7, and fails on any other
 version and on a missing lock file.
@@ -130,11 +146,11 @@ cache without evaluating nixpkgs, and never writes `$GITHUB_PATH`.
 ## Versioning
 
 The public API is the inputs, the absence of outputs, the permissions of the
-token, the runners and the rules of [ADR-0001][adr-0001] and
-[ADR-0002][adr-0002]. Tightening any rule is a major release; before `v1.0.0`, a
-`0.y` release ([FY-0024][fy-0024]). A new nixpkgs of the root flake, which
-Renovate proposes once a month, is a patch release, since it changes the tools
-that the action runs. See [VERSIONING][versioning].
+token, the runners and the rules of [ADR-0001][adr-0001], [ADR-0002][adr-0002]
+and [ADR-0004][adr-0004]. Tightening any rule is a major release; before
+`v1.0.0`, a `0.y` release ([FY-0024][fy-0024]). A new nixpkgs of the root flake,
+which Renovate proposes once a month, is a patch release, since it changes the
+tools that the action runs. See [VERSIONING][versioning].
 
 ## Development
 
@@ -199,6 +215,8 @@ yet. Until they are:
 [action-shell-lib]: https://github.com/flakeyard/action-shell-lib
 [adr-0001]: docs/adr/records/0001-check-flake-lock.md
 [adr-0002]: docs/adr/records/0002-end-of-life-of-nixpkgs.md
+[adr-0004]:
+  docs/adr/records/0004-warn-about-a-newer-major-version-of-flakeyard-inputs.md
 [adr-0003]:
   docs/adr/records/0003-substitute-the-tools-from-recorded-store-paths.md
 [versioning]: https://github.com/flakeyard/.github/blob/main/VERSIONING.md
