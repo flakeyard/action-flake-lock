@@ -2,7 +2,8 @@ name: Check flake.lock
 description: >-
   Checks a flake.lock: flakeyard inputs are released, no source is locked
   twice, the inputs of the root are pinned in the form of flakeyard, and their
-  nixpkgs branches have not reached their end of life.
+  nixpkgs branches have not reached their end of life; warns about a newer
+  major version of flakeyard inputs.
 inputs:
   path:
     description: The lock file, relative to the workspace.
@@ -23,6 +24,11 @@ inputs:
       Check the end of life of the nixpkgs branch of every input of the root:
       a warning from 30 days before it, a failure after it in scheduled runs.
       false switches the check off.
+    default: "true"
+  newer-major:
+    description: >-
+      Warn about every flakeyard input whose repository has released a newer
+      major version. false switches the warnings off.
     default: "true"
   github-token:
     description: >-
@@ -51,10 +57,11 @@ runs:
         ALLOW_DUPLICATES: ${{ inputs.allow-duplicates }}
         PIN_FORM: ${{ inputs.pin-form }}
         NIXPKGS_EOL: ${{ inputs.nixpkgs-eol }}
+        NEWER_MAJOR: ${{ inputs.newer-major }}
       run: >-
         /usr/bin/bash -p "$SHELL_LIB/run-step.sh"
         "$GITHUB_ACTION_PATH/scripts/step" check
-        LOCK_PATH ALLOW_DUPLICATES PIN_FORM NIXPKGS_EOL
+        LOCK_PATH ALLOW_DUPLICATES PIN_FORM NIXPKGS_EOL NEWER_MAJOR
         GITHUB_SERVER_URL GITHUB_WORKSPACE RUNNER_TEMP
 
     # PATH is the job's, where nix is; HOME and XDG_* are where nix keeps its
@@ -89,10 +96,11 @@ runs:
       env:
         SHELL_LIB: ${{ steps.lib.outputs.path }}
         TOKEN: ${{ inputs.github-token }}
+        NEWER_MAJOR: ${{ inputs.newer-major }}
       run: >-
         /usr/bin/bash -p "$SHELL_LIB/run-step.sh"
         "$GITHUB_ACTION_PATH/scripts/step" releases
-        TOKEN HOME XDG_CONFIG_HOME XDG_CACHE_HOME RUNNER_TEMP
+        TOKEN NEWER_MAJOR HOME XDG_CONFIG_HOME XDG_CACHE_HOME RUNNER_TEMP
 
     - name: Report
       shell: /usr/bin/bash --noprofile --norc -p -e -o pipefail {0}
@@ -101,7 +109,8 @@ runs:
         LOCK_PATH: ${{ inputs.path }}
         PIN_FORM: ${{ inputs.pin-form }}
         NIXPKGS_EOL: ${{ inputs.nixpkgs-eol }}
+        NEWER_MAJOR: ${{ inputs.newer-major }}
       run: >-
         /usr/bin/bash -p "$SHELL_LIB/run-step.sh"
         "$GITHUB_ACTION_PATH/scripts/step" report
-        LOCK_PATH PIN_FORM NIXPKGS_EOL GITHUB_STEP_SUMMARY RUNNER_TEMP
+        LOCK_PATH PIN_FORM NIXPKGS_EOL NEWER_MAJOR GITHUB_STEP_SUMMARY RUNNER_TEMP
