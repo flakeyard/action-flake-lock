@@ -156,10 +156,18 @@ tools that the action runs. See [VERSIONING][versioning].
 
 Open the repository in its dev container,
 [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json), with
-"Reopen in Container" in VS Code or `devcontainer up --workspace-folder .`. It
-has Nix, and the checks below run in it as in CI; tools that the image does not
-have come from nixpkgs, such as `nix run nixpkgs#typos`. Nix on the host works
-as well.
+"Reopen in Container" in VS Code or `devcontainer up --workspace-folder .`.
+`direnv` loads the development shell of [`dev/flake.nix`](dev/flake.nix) through
+[`.envrc`](.envrc) ([FY-0012][fy-0012]): [atom-workspace][atom-workspace] joins
+the tools of the atoms and `jq` and mikefarah `yq` for `tests/run.sh`, and
+installs the git hooks each time the shell starts. The container runs
+`direnv allow` when it is created; run it once in every other worktree, and run
+`direnv block` before you check out a branch you do not trust, since entering
+the directory runs that branch's shell hook. Commit inside the container, whose
+Nix store has the tools of the hooks. The checks below run in it as in CI; tools
+that the shell does not have come from nixpkgs, such as `nix run nixpkgs#typos`.
+Nix on the host works as well: `direnv allow` or `nix develop ./dev` gives the
+same shell.
 
 The root [`flake.nix`](flake.nix) holds only the tools that the action runs,
 `jq` and `gh`, from one pinned nixpkgs. The checks of the repository live in
@@ -172,8 +180,7 @@ records the store paths of the packages of the root flake) and `unit`
 the commit that [`action.yml`](action.yml) pins and gives it to the tests as
 `SHELL_LIB`, whose harness and stubs of `gh`, `date` and `sleep` they use.
 Alone, `tests/run.sh` needs `SHELL_LIB` set to a checkout of the library,
-mikefarah `yq` and `jq`, such as from `nix shell nixpkgs#yq-go nixpkgs#jq`. Run
-the checks with:
+mikefarah `yq` and `jq`, which the development shell has. Run the checks with:
 
 ```sh
 nix flake check --no-update-lock-file ./dev
@@ -249,3 +256,6 @@ yet. Until they are:
   https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0030-actions-workflows-and-release-bot.md
 [fy-0034]:
   https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0034-check-every-repository-with-workflow-check.md
+[atom-workspace]: https://github.com/flakeyard/atom-workspace
+[fy-0012]:
+  https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0012-develop-in-container.md
