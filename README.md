@@ -172,10 +172,13 @@ same shell.
 The root [`flake.nix`](flake.nix) holds only the tools that the action runs,
 `jq` and `gh`, from one pinned nixpkgs. The checks of the repository live in
 [`dev/flake.nix`](dev/flake.nix), with its own lock, so that consumers fetch
-none of them: `formatting` (nixfmt), `shell` (shellcheck and shfmt), `workflows`
-(actionlint and zizmor of [atom-workflows][atom-workflows] over the workflows
-and `action.yml` of the whole repository), `tools` ([`tools.nix`](tools.nix)
-records the store paths of the packages of the root flake) and `unit`
+none of them: `nix` (statix, deadnix and the relative paths hook of
+[atom-nix][atom-nix] over the Nix files), `shell` (shellcheck of
+[atom-shell][atom-shell] over the scripts), `treefmt` (nixfmt and shfmt check
+their formatting), `workflows` (actionlint and zizmor of
+[atom-workflows][atom-workflows] over the workflows and `action.yml`), the atoms
+over the whole repository, `tools` ([`tools.nix`](tools.nix) records the store
+paths of the packages of the root flake) and `unit`
 ([`tests/run.sh`](tests/run.sh)). The `unit` check fetches the shell library at
 the commit that [`action.yml`](action.yml) pins and gives it to the tests as
 `SHELL_LIB`, whose harness and stubs of `gh`, `date` and `sleep` they use.
@@ -239,6 +242,8 @@ yet. Until they are:
 [wc-adr-0002]:
   https://github.com/flakeyard/workflow-check/blob/main/docs/adr/records/0002-check-flake-lock.md
 [workflow-check]: https://github.com/flakeyard/workflow-check
+[atom-nix]: https://github.com/flakeyard/atom-nix
+[atom-shell]: https://github.com/flakeyard/atom-shell
 [atom-workflows]: https://github.com/flakeyard/atom-workflows
 [workflow-release]: https://github.com/flakeyard/workflow-release
 [workflow-scorecard]: https://github.com/flakeyard/workflow-scorecard
