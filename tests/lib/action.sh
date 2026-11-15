@@ -22,16 +22,16 @@ readonly HOST_JQ
 # Files shared by all tests, removed at the end.
 shared=$(mktemp -d)
 trap 'rm -rf -- "$shared"' EXIT
-sysbin=$shared/bin
-mkdir "$sysbin"
+sysbin=${shared}/bin
+mkdir "${sysbin}"
 for tool in "${RUNNER_TOOLS[@]}"; do
-  ln -s "$(command -v "$tool")" "$sysbin/$tool"
+  ln -s "$(command -v "${tool}")" "${sysbin}/${tool}"
 done
 
 # The shell library, whose steps get the tools of the runner in $sysbin after
 # the stubs of the library, TESTING_BIN.
-shell_lib=$shared/shell-lib
-copy_library "$shell_lib" "$TESTING_BIN:$sysbin"
+shell_lib=${shared}/shell-lib
+copy_library "${shell_lib}" "${TESTING_BIN}:${sysbin}"
 readonly shell_lib
 
 # action_setup: setup of the library, with a workspace, the variables of a
@@ -40,13 +40,13 @@ readonly shell_lib
 action_setup() {
   setup
   # STATE_DIR of lib/env.sh: the files that the steps share.
-  state=$work/temp/action-flake-lock
-  mkdir -p "$work/workspace" "$work/temp" "$work/home"
-  apply PATH="$root/tests/bin:$sysbin" HOME="$work/home" SHELL_LIB="$shell_lib" \
-    RUNNER_TEMP="$work/temp" GITHUB_WORKSPACE="$work/workspace" \
+  state=${work}/temp/action-flake-lock
+  mkdir -p "${work}/workspace" "${work}/temp" "${work}/home"
+  apply PATH="${root}/tests/bin:${sysbin}" HOME="${work}/home" SHELL_LIB="${shell_lib}" \
+    RUNNER_TEMP="${work}/temp" GITHUB_WORKSPACE="${work}/workspace" \
     GITHUB_SERVER_URL=https://github.com GITHUB_EVENT_NAME=pull_request \
     LOCK_PATH=flake.lock PIN_FORM=true NIXPKGS_EOL=true NEWER_MAJOR=true ALLOW_DUPLICATES=
-  fixed_time "$DEFAULT_TIME"
+  fixed_time "${DEFAULT_TIME}"
 }
 
 # prepared: the last run only prepared the test that follows; it is not

@@ -15,25 +15,25 @@ if require_yq action.yml; then
   check_action_steps action.yml
   check_library_pins
 
-  yaml_check "$action" "action: the scripts of the steps, in order" \
+  yaml_check "${action}" "action: the scripts of the steps, in order" \
     '[.runs.steps[1:][] | .run | match($run).captures[0].string] == $steps' \
-    --arg run "$STEP_RUN_FORM" --argjson steps "$SCRIPT_STEPS"
+    --arg run "${STEP_RUN_FORM}" --argjson steps "${SCRIPT_STEPS}"
 
   # Without it, a branch past its end of life only warns in scheduled runs
   # too (ADR-0002).
-  yaml_check "$action" "action: the step parse gets GITHUB_EVENT_NAME" \
+  yaml_check "${action}" "action: the step parse gets GITHUB_EVENT_NAME" \
     '[.runs.steps[] | .run // "" | match($run) | .captures | select(.[0].string == "parse")
-    | .[1].string | split(" ") | any(. == "GITHUB_EVENT_NAME")] == [true]' --arg run "$STEP_RUN_FORM"
+    | .[1].string | split(" ") | any(. == "GITHUB_EVENT_NAME")] == [true]' --arg run "${STEP_RUN_FORM}"
 
-  yaml_check "$action" "action: exactly the inputs of ADR-0004 and no outputs" \
-    '(.inputs | keys_unsorted) == $inputs and (has("outputs") | not)' --argjson inputs "$INPUTS"
+  yaml_check "${action}" "action: exactly the inputs of ADR-0004 and no outputs" \
+    '(.inputs | keys_unsorted) == $inputs and (has("outputs") | not)' --argjson inputs "${INPUTS}"
 
-  yaml_check "$action" "action: only the step releases gets the token" \
+  yaml_check "${action}" "action: only the step releases gets the token" \
     '[.runs.steps[] | select(tostring | contains("inputs.github-token"))]
     == [.runs.steps[] | select(.run // "" | test(" releases "))]'
 fi
 
 setup
 current="action: no file writes GITHUB_PATH"
-! grep -q 'GITHUB_PATH' "$root/action.yml" "$root"/scripts/*/*.sh || report "the action writes GITHUB_PATH"
+! grep -q 'GITHUB_PATH' "${root}/action.yml" "${root}"/scripts/*/*.sh || report "the action writes GITHUB_PATH"
 finish

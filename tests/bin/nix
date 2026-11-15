@@ -25,36 +25,36 @@ stub_error() {
 # MESSAGE when it is missing.
 print_fixture() {
   local file=$1 message=$2 line
-  if [[ ! -f $file ]]; then
-    echo "error: $message" >&2
+  if [[ ! -f ${file} ]]; then
+    echo "error: ${message}" >&2
     exit 1
   fi
-  while IFS= read -r line; do printf '%s\n' "$line"; done <"$file"
+  while IFS= read -r line; do printf '%s\n' "${line}"; done <"${file}"
 }
 
 # system: print the system of nix.
 system() {
   [[ "$*" == 'config show system' ]] || stub_error "unsupported: $*"
-  print_fixture "$FIXTURES/nix-system" "no system"
+  print_fixture "${FIXTURES}/nix-system" "no system"
 }
 
 # eval_raw FLAGS FILE ATTRIBUTE: print the value of ATTRIBUTE, without a newline
 # as --raw does.
 eval_raw() {
-  [[ "${*:2:2}" == "$EVAL_FLAGS" && $# == 5 ]] || stub_error "eval without $EVAL_FLAGS FILE ATTRIBUTE: $*"
+  [[ "${*:2:2}" == "${EVAL_FLAGS}" && $# == 5 ]] || stub_error "eval without ${EVAL_FLAGS} FILE ATTRIBUTE: $*"
   local attribute=$5 value
-  value=$(print_fixture "$FIXTURES/nix-eval-$attribute" "attribute '$attribute' not found")
-  printf '%s' "$value"
+  value=$(print_fixture "${FIXTURES}/nix-eval-${attribute}" "attribute '${attribute}' not found")
+  printf '%s' "${value}"
 }
 
 # build FLAGS PATH: print the paths that substituting PATH yields.
 build() {
-  [[ "${*:2:2}" == "$BUILD_FLAGS" && $# == 4 ]] || stub_error "build without $BUILD_FLAGS PATH: $*"
+  [[ "${*:2:2}" == "${BUILD_FLAGS}" && $# == 4 ]] || stub_error "build without ${BUILD_FLAGS} PATH: $*"
   local path=$4
-  print_fixture "$FIXTURES/nix-build-${path##*/}" "path '$path' is required, but there is no substituter that can build it"
+  print_fixture "${FIXTURES}/nix-build-${path##*/}" "path '${path}' is required, but there is no substituter that can build it"
 }
 
-echo "nix $*" >>"$CALLS"
+echo "nix $*" >>"${CALLS}"
 case ${1-} in
   config) system "$@" ;;
   eval) eval_raw "$@" ;;

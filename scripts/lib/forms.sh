@@ -14,8 +14,8 @@ readonly BOOLEAN_FORM='^(true|false)$'
 items() {
   local list=$1 line
   while IFS=$' \t\r' read -r line; do
-    [[ -z $line ]] || printf '%s\n' "$line"
-  done <<<"$list"
+    [[ -z ${line} ]] || printf '%s\n' "${line}"
+  done <<<"${list}"
 }
 
 # workspace: prints the real path of the workspace.
@@ -27,20 +27,20 @@ workspace() {
 # fails when it does not exist.
 lock_file() {
   local path=$1
-  realpath -e -- "$(workspace)/$path" 2>/dev/null
+  realpath -e -- "$(workspace)/${path}" 2>/dev/null
 }
 
 # lock_problem PATH: prints why PATH, relative to the workspace, cannot be
 # read as the lock file; prints nothing when it can.
 lock_problem() {
   local path=$1 real
-  if [[ -z $path || $path == /* ]]; then
-    echo "path must be relative to the workspace, not '$path'."
-  elif ! real=$(lock_file "$path"); then
-    echo "No lock file at $path."
-  elif [[ $real != "$(workspace)"/* ]]; then
-    echo "The lock file $path is outside the workspace."
-  elif [[ ! -f $real ]]; then
-    echo "The lock file $path is not a regular file."
+  if [[ -z ${path} || ${path} == /* ]]; then
+    echo "path must be relative to the workspace, not '${path}'."
+  elif ! real=$(lock_file "${path}"); then
+    echo "No lock file at ${path}."
+  elif [[ ${real} != "$(workspace)"/* ]]; then
+    echo "The lock file ${path} is outside the workspace."
+  elif [[ ! -f ${real} ]]; then
+    echo "The lock file ${path} is not a regular file."
   fi
 }

@@ -5,6 +5,6 @@
 set -euo pipefail
 
 if [[ ${OUTCOME:?} != failure ]]; then
-  echo "::error::The action passed a lock that breaks every rule: outcome $OUTCOME."
+  echo "::error::The action passed a lock that breaks every rule: outcome ${OUTCOME}."
   exit 1
 fi

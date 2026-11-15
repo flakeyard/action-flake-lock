@@ -5,5 +5,5 @@
 set -euo pipefail
 
 printf 'gh GH_HOST=%s GH_TOKEN=%s GH_REPO=%s GH_ENTERPRISE_TOKEN=%s GH_CONFIG_DIR=%s\n' \
-  "${GH_HOST-}" "${GH_TOKEN-}" "${GH_REPO-}" "${GH_ENTERPRISE_TOKEN-}" "${GH_CONFIG_DIR-}" >>"$CALLS"
-exec "$SHELL_LIB/internal/testing/bin/gh" "$@"
+  "${GH_HOST-}" "${GH_TOKEN-}" "${GH_REPO-}" "${GH_ENTERPRISE_TOKEN-}" "${GH_CONFIG_DIR-}" >>"${CALLS}"
+exec "${SHELL_LIB}/internal/testing/bin/gh" "$@"

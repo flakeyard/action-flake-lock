@@ -9,7 +9,7 @@ c() { printf "$1%.0s" {1..40}; }
 # looked up.
 lookups() {
   local repo=$1
-  grep -cxF "graphql owner=flakeyard name=$repo" "$work/calls"
+  grep -cxF "graphql owner=flakeyard name=${repo}" "${work}/calls"
 }
 
 # releases_setup: the parsed releases fixture and the releases of the API:
@@ -31,11 +31,11 @@ releases_setup() {
 }
 
 releases_setup
-run "releases: every flakeyard input" ok scripts/step/releases.sh TOKEN="$TOKEN"
-expect message "::add-mask::$TOKEN"
+run "releases: every flakeyard input" ok scripts/step/releases.sh TOKEN="${TOKEN}"
+expect message "::add-mask::${TOKEN}"
 expect_findings release 8
 while IFS='|' read -r input message; do
-  expect_finding release "inputs.$input of flakeyard/$message"
+  expect_finding release "inputs.${input} of flakeyard/${message}"
 done <<CASES
 wrong-exact|atom-a: its ref v1.0.0 is not the tag of a release of its rev, v1.1.0. The newest release of v1 is v1.1.0 at $(c 1).
 unreleased|atom-a: its rev $(c d) is not the commit of an immutable release v1.Y.Z. The newest release of v1 is v1.1.0 at $(c 1).
@@ -50,20 +50,20 @@ finish
 
 releases_setup
 run "releases: one lookup per repository, for github.com only" ok scripts/step/releases.sh \
-  TOKEN="$TOKEN" GH_REPO=o/r GH_ENTERPRISE_TOKEN=x GH_CONFIG_DIR=/x
+  TOKEN="${TOKEN}" GH_REPO=o/r GH_ENTERPRISE_TOKEN=x GH_CONFIG_DIR=/x
 for repo in atom-a atom-c atom-gone; do
-  [[ -z $current ]] || (($(lookups "$repo") == 1)) || report "not one lookup of $repo"
+  [[ -z ${current} ]] || (($(lookups "${repo}") == 1)) || report "not one lookup of ${repo}"
 done
 # atom-b once more, after its gateway timeout.
-[[ -z $current ]] || (($(lookups atom-b) == 2)) || report "not two lookups of atom-b"
+[[ -z ${current} ]] || (($(lookups atom-b) == 2)) || report "not two lookups of atom-b"
 expect sleeps 5
-expect call "GH_HOST=github.com GH_TOKEN=$TOKEN GH_REPO= GH_ENTERPRISE_TOKEN= GH_CONFIG_DIR="
-[[ -z $current ]] || ! grep -q "name=utils" "$work/calls" || report "a third-party repository was looked up"
+expect call "GH_HOST=github.com GH_TOKEN=${TOKEN} GH_REPO= GH_ENTERPRISE_TOKEN= GH_CONFIG_DIR="
+[[ -z ${current} ]] || ! grep -q "name=utils" "${work}/calls" || report "a third-party repository was looked up"
 finish
 
 for token in "" "ghs abc" $'ghs_abc\n::warning::x'; do
   releases_setup
-  run "releases: rejects the token '$token'" fail scripts/step/releases.sh TOKEN="$token"
+  run "releases: rejects the token '${token}'" fail scripts/step/releases.sh TOKEN="${token}"
   expect message "Invalid github-token"
   expect no-message "::add-mask::"
   expect no-calls
@@ -72,9 +72,9 @@ done
 
 releases_setup
 transient_failures "$(releases_request atom-a)" 3
-run "releases: a lasting server error is an input that could not be verified" ok scripts/step/releases.sh TOKEN="$TOKEN"
+run "releases: a lasting server error is an input that could not be verified" ok scripts/step/releases.sh TOKEN="${TOKEN}"
 expect_finding release "Could not verify inputs.good, flakeyard/atom-a: the GitHub API failed, see the log."
-[[ -z $current ]] || (($(lookups atom-a) == 3)) || report "not three attempts for atom-a"
+[[ -z ${current} ]] || (($(lookups atom-a) == 3)) || report "not three attempts for atom-a"
 expect sleeps "5 10 5"
 finish
 
@@ -83,11 +83,11 @@ finish
 # many_repositories COUNT: a lock with a flakeyard input of COUNT repositories.
 many_repositories() {
   local count=$1
-  jq -n --argjson count "$count" --arg rev "$(c 1)" '
+  jq -n --argjson count "${count}" --arg rev "$(c 1)" '
     [range($count) | "atom-\(.)"] as $names
     | {version: 7, root: "root", nodes: ({root: {inputs: ($names | map({(.): .}) | add)}}
       + ($names | map({(.): {locked: {type: "git", url: "https://github.com/flakeyard/\(.)", rev: $rev}}}) | add))}' \
-    >"$work/workspace/flake.lock"
+    >"${work}/workspace/flake.lock"
 }
 
 action_setup
@@ -95,8 +95,8 @@ given_tools
 many_repositories 51
 run "releases: parse many repositories" ok scripts/step/parse.sh
 prepared
-run "releases: at most 50 repositories are looked up" ok scripts/step/releases.sh TOKEN="$TOKEN"
-[[ -z $current ]] || (($(grep -c '^graphql' "$work/calls") == 50)) || report "not 50 lookups"
+run "releases: at most 50 repositories are looked up" ok scripts/step/releases.sh TOKEN="${TOKEN}"
+[[ -z ${current} ]] || (($(grep -c '^graphql' "${work}/calls") == 50)) || report "not 50 lookups"
 expect_finding release "Could not verify inputs.atom-9, flakeyard/atom-9: the lock has more than 50 flakeyard repositories."
 finish
 
@@ -105,7 +105,7 @@ given_tools
 given_lock version-7
 run "releases: parse a lock without flakeyard inputs" ok scripts/step/parse.sh
 prepared
-run "releases: no flakeyard input, no lookup" ok scripts/step/releases.sh TOKEN="$TOKEN"
+run "releases: no flakeyard input, no lookup" ok scripts/step/releases.sh TOKEN="${TOKEN}"
 expect no-calls
 expect_findings release 0
 finish
@@ -121,7 +121,7 @@ refs_lock() {
       + ($inputs | map({(.name): {
           locked: {type: "git", url: "https://github.com/flakeyard/atom-s", ref: .ref, rev: $rev},
           original: {type: "git", url: "https://github.com/flakeyard/atom-s", ref: .ref, rev: $rev}}}) | add))}' \
-    --args "$@" >"$work/workspace/flake.lock"
+    --args "$@" >"${work}/workspace/flake.lock"
 }
 
 action_setup
@@ -130,7 +130,7 @@ refs_lock v1.2.4 v1.2.3 v1.2.5
 run "releases: parse refs of one commit" ok scripts/step/parse.sh
 prepared
 releases_of atom-s "v1.2.3=$(c a)" "v1.2.4=$(c a)"
-run "releases: a ref may be any release tag of its commit" ok scripts/step/releases.sh TOKEN="$TOKEN"
+run "releases: a ref may be any release tag of its commit" ok scripts/step/releases.sh TOKEN="${TOKEN}"
 expect_findings release 1
 expect_finding release "inputs.ref2 of flakeyard/atom-s: its ref v1.2.5 is not the tag of a release of its rev, v1.2.3, v1.2.4. The newest release of v1 is v1.2.4 at $(c a)."
 finish
