@@ -39,9 +39,11 @@ fake_tools() {
 
 # expect_recorded NAME PATH: the step recorded PATH as the store path of NAME.
 expect_recorded() {
-  local name=$1 path=$2 file=${state}/tools/$1
-  [[ -z ${current} ]] || [[ -f ${file} && $(<"${file}") == "${path}" ]] \
-    || report "recorded for ${name}: '$(cat "${file}" 2>/dev/null)', expected '${path}'"
+  local name=$1 path=$2 file=${state}/tools/$1 recorded=""
+  [[ -n ${current} ]] || return 0
+  if [[ -f ${file} ]]; then recorded=$(<"${file}"); fi
+  [[ -f ${file} && ${recorded} == "${path}" ]] \
+    || report "recorded for ${name}: '${recorded}', expected '${path}'"
 }
 
 action_setup

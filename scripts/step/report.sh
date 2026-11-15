@@ -63,37 +63,45 @@ all_findings() {
 # report_finding KIND TITLE INPUT MESSAGE: one row of the summary, one
 # annotation of KIND: error, warning or notice.
 report_finding() {
-  local kind=$1 title=$2 input=$3 message=$4 check=$2
+  local kind=$1 title=$2 input=$3 message=$4 check=$2 input_span message_span
   [[ ${kind} =~ ${KIND_FORM} ]] || fail "Unknown kind of finding '${kind}'."
   [[ ${kind} == error ]] || check+=" (${kind})"
-  summary "| ${check} | $(code_span "${input}") | $(code_span "${message}") |"
+  input_span=$(code_span "${input}")
+  message_span=$(code_span "${message}")
+  summary "| ${check} | ${input_span} | ${message_span} |"
   "${kind}" "${message}" "${LOCK_PATH}" "${title}: ${input}"
 }
 
 # report_all FINDINGS: the summary and the annotations of the JSON array
 # FINDINGS.
 report_all() {
-  local findings=$1 kind title input message
-  summary "### $(code_span "${LOCK_PATH}")"
+  local findings=$1 titles=${STATE_DIR}/titles kind title input message lock_span
+  # A file, not a variable: the fields are separated by NUL.
+  "${jq}" --raw-output0 "${TITLES_PROGRAM}" <<<"${findings}" >"${titles}"
+  lock_span=$(code_span "${LOCK_PATH}")
+  summary "### ${lock_span}"
   summary ""
   summary "| Check | Input | Problem |"
   summary "| --- | --- | --- |"
   while IFS= read -r -d '' kind && IFS= read -r -d '' title \
     && IFS= read -r -d '' input && IFS= read -r -d '' message; do
     report_finding "${kind}" "${title}" "${input}" "${message}"
-  done < <("${jq}" --raw-output0 "${TITLES_PROGRAM}" <<<"${findings}")
+  done <"${titles}"
   flush "the job summary lists all of them"
 }
 
 # report_pass: the lock has no violation.
 report_pass() {
+  local lock_span
   notice "${LOCK_PATH} passes every check of action-flake-lock."
-  summary "$(code_span "${LOCK_PATH}") passes every check of action-flake-lock."
+  lock_span=$(code_span "${LOCK_PATH}")
+  summary "${lock_span} passes every check of action-flake-lock."
 }
 
 main() {
   local findings count
   # The jq of the action, for all_findings and report_all.
+  # shellcheck disable=SC2310 # tool checks each of its steps and returns their failure.
   jq=$(tool jq) || fail "The tools step did not build jq."
   require_findings
   findings=$(all_findings)

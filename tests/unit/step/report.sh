@@ -43,7 +43,8 @@ finish
 action_setup
 given_tools
 no_findings
-given_findings duplicates "[$(a_finding duplicates github.com/o/r 'r is locked 2 times')]"
+finding=$(a_finding duplicates github.com/o/r 'r is locked 2 times')
+given_findings duplicates "[${finding}]"
 given_findings release '[{"rule":"release","input":"inputs.b","message":"Could not verify inputs.b","unverified":true},
   {"rule":"release","input":"inputs.a","message":"inputs.a of flakeyard/a: bad rev"}]'
 run "report: every finding, in the summary and as annotations" fail scripts/step/report.sh
@@ -54,14 +55,17 @@ expect message "flake.lock has 3 problems; the job summary lists them."
 expect errors 3
 expect summary '| Duplicated source | `github.com/o/r` | `r is locked 2 times` |'
 expect summary '| Release | `inputs.a` | `inputs.a of flakeyard/a: bad rev` |'
-[[ -z ${current} ]] || [[ $(grep -c '^| ' "${work}/summary") == 5 ]] || report "not a table of 3 rows: $(cat "${work}/summary")"
-[[ -z ${current} ]] || [[ $(tail -1 "${work}/summary") == *"Could not verify"* ]] || report "an input that could not be verified is not last"
+rows=$(grep -c '^| ' "${work}/summary")
+[[ -z ${current} ]] || ((rows == 5)) || report "not a table of 3 rows: $(<"${work}/summary")"
+last=$(tail -1 "${work}/summary")
+[[ -z ${current} ]] || [[ ${last} == *"Could not verify"* ]] || report "an input that could not be verified is not last"
 finish
 
 action_setup
 given_tools
 no_findings
-given_findings pin-form "$(findings_of 12)"
+json=$(findings_of 12)
+given_findings pin-form "${json}"
 run "report: at most 10 annotations, the last says how many more" fail scripts/step/report.sh
 expect errors 10
 expect message "title=Pin form%3A inputs.i9::problem 9"
@@ -74,7 +78,8 @@ finish
 action_setup
 given_tools
 no_findings
-given_findings pin-form "$(findings_of 10)"
+json=$(findings_of 10)
+given_findings pin-form "${json}"
 run "report: ten findings are all annotations" fail scripts/step/report.sh
 expect errors 10
 expect message "title=Pin form%3A inputs.i10::problem 10"
@@ -134,20 +139,26 @@ finish
 action_setup
 given_tools
 no_findings
-given_findings nixpkgs-eol "$(eol_findings_of 1 warning | jq -c --argjson ended "$(a_finding nixpkgs-eol inputs.a 'a has ended')" '. + [$ended]')"
-given_findings release "[$(a_finding release inputs.r 'r is unreleased')]"
+warnings=$(eol_findings_of 1 warning)
+finding=$(a_finding nixpkgs-eol inputs.a 'a has ended')
+json=$(jq -c --argjson ended "${finding}" '. + [$ended]' <<<"${warnings}")
+given_findings nixpkgs-eol "${json}"
+finding=$(a_finding release inputs.r 'r is unreleased')
+given_findings release "[${finding}]"
 run "report: an end of life without level is a violation, listed before warnings" fail scripts/step/report.sh
 expect message "::error file=flake.lock,title=End of life of nixpkgs%3A inputs.a::a has ended"
 expect message "flake.lock has 2 problems; the job summary lists them."
 expect errors 2
 expect warnings 1
-[[ -z ${current} ]] || [[ $(tail -1 "${work}/summary") == *"(warning)"* ]] || report "a warning is not last"
+last=$(tail -1 "${work}/summary")
+[[ -z ${current} ]] || [[ ${last} == *"(warning)"* ]] || report "a warning is not last"
 finish
 
 action_setup
 given_tools
 no_findings
-given_findings nixpkgs-eol "$(eol_findings_of 12 warning)"
+json=$(eol_findings_of 12 warning)
+given_findings nixpkgs-eol "${json}"
 run "report: at most 10 warnings, the last says how many more" ok scripts/step/report.sh
 expect warnings 10
 expect message "title=End of life of nixpkgs%3A inputs.n9::eol 9"
@@ -159,8 +170,10 @@ finish
 action_setup
 given_tools
 no_findings
-given_findings pin-form "$(findings_of 12)"
-given_findings nixpkgs-eol "$(eol_findings_of 12 warning)"
+json=$(findings_of 12)
+given_findings pin-form "${json}"
+json=$(eol_findings_of 12 warning)
+given_findings nixpkgs-eol "${json}"
 run "report: errors and warnings are counted apart" fail scripts/step/report.sh
 expect errors 10
 expect warnings 10
@@ -179,7 +192,8 @@ major_findings_of() {
 action_setup
 given_tools
 no_findings
-given_findings newer-major "$(major_findings_of 1)"
+json=$(major_findings_of 1)
+given_findings newer-major "${json}"
 run "report: a newer major version warns and passes" ok scripts/step/report.sh
 expect message "::warning file=flake.lock,title=Newer major version%3A inputs.m1::major 1"
 expect message "::notice::flake.lock passes every check of action-flake-lock."
@@ -190,8 +204,10 @@ finish
 action_setup
 given_tools
 no_findings
-given_findings nixpkgs-eol "$(eol_findings_of 6 warning)"
-given_findings newer-major "$(major_findings_of 6)"
+json=$(eol_findings_of 6 warning)
+given_findings nixpkgs-eol "${json}"
+json=$(major_findings_of 6)
+given_findings newer-major "${json}"
 run "report: both warning rules share 10 warnings" ok scripts/step/report.sh
 expect warnings 10
 expect message "title=End of life of nixpkgs%3A inputs.n6::eol 6"
@@ -199,6 +215,16 @@ expect message "title=Newer major version%3A inputs.m3::major 3"
 expect no-message "inputs.m4::"
 expect message "::warning::3 more warnings are not shown here; the job summary lists all of them."
 expect summary '`inputs.m6`'
+finish
+
+action_setup
+given_failing_jq --raw-output0
+no_findings
+json=$(eol_findings_of 1 warning)
+given_findings nixpkgs-eol "${json}"
+run "report: a failing jq of the titles fails the step" fail scripts/step/report.sh
+expect message "jq: error: stub jq fails on --raw-output0"
+[[ -z ${current} ]] || ! grep -qF '| Check |' "${work}/summary" || report "a table without rows in the summary"
 finish
 
 # --- names of the lock -------------------------------------------

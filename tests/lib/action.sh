@@ -25,7 +25,8 @@ trap 'rm -rf -- "$shared"' EXIT
 sysbin=${shared}/bin
 mkdir "${sysbin}"
 for tool in "${RUNNER_TOOLS[@]}"; do
-  ln -s "$(command -v "${tool}")" "${sysbin}/${tool}"
+  tool_path=$(command -v "${tool}")
+  ln -s "${tool_path}" "${sysbin}/${tool}"
 done
 
 # The shell library, whose steps get the tools of the runner in $sysbin after

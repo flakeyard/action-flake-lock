@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# The jq that the tools step builds, in tests that make it fail: fails as jq
+# when one of its arguments is the line of $FIXTURES/jq-fail, and runs the jq
+# of the host, $HOST_JQ, otherwise. It is not in tests/bin, so that the job
+# PATH has no jq. The stub uses builtins only: it runs with the PATH of the
+# runner.
+set -euo pipefail
+
+failing=$(<"${FIXTURES}/jq-fail")
+for argument; do
+  if [[ ${argument} == "${failing}" ]]; then
+    echo "jq: error: stub jq fails on ${failing}" >&2
+    exit 5
+  fi
+done
+exec "${HOST_JQ:?}" "$@"

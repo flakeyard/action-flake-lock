@@ -30,11 +30,13 @@ check_path() {
 }
 
 check_allow_duplicates() {
-  local source
+  local sources source
+  sources=$(items "${ALLOW_DUPLICATES-}")
+  [[ -n ${sources} ]] || return 0
   while IFS= read -r source; do
     [[ ${source} =~ ${SOURCE_FORM} ]] \
       || problem "Invalid source '${source}' in allow-duplicates: expected github.com/<owner>/<repo> in lower case, with an optional ?dir=<dir>."
-  done < <(items "${ALLOW_DUPLICATES-}")
+  done <<<"${sources}"
 }
 
 # check_boolean INPUT VALUE: VALUE of the input INPUT is true or false.

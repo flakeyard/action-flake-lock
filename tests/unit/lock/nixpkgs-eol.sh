@@ -28,14 +28,27 @@ eol_findings() {
 # expect_eol LEVEL MESSAGE: the rule found MESSAGE as LEVEL: violation,
 # warning or notice.
 expect_eol() {
-  local level=$1 message=$2
-  [[ -z ${current} ]] || eol_findings | grep -qxF -- "${level} ${message}" \
-    || report "no ${level} '${message}' in: $(eol_findings)"
+  local level=$1 message=$2 found
+  [[ -n ${current} ]] || return 0
+  found=$(eol_findings)
+  grep -qxF -- "${level} ${message}" <<<"${found}" || report "no ${level} '${message}' in: ${found}"
 }
 
 # expect_no_eol: the rule found nothing.
 expect_no_eol() {
-  [[ -z ${current} ]] || [[ -z $(eol_findings) ]] || report "unexpected findings: $(eol_findings)"
+  local found
+  [[ -n ${current} ]] || return 0
+  found=$(eol_findings)
+  [[ -z ${found} ]] || report "unexpected findings: ${found}"
+}
+
+# expect_one_eol: the rule found one finding.
+expect_one_eol() {
+  local actual found
+  [[ -n ${current} ]] || return 0
+  actual=$(jq length "${state}/findings/nixpkgs-eol.json")
+  found=$(eol_findings)
+  ((actual == 1)) || report "not one finding: ${found}"
 }
 
 # eol_case NAME REF TIME EVENT: parse a lock with REF at TIME in a run of
@@ -111,7 +124,7 @@ nixpkgs_lock nixos-26.05 nixos-25.11
 fixed_time 2026-06-15T00:00:00Z
 run "nixpkgs-eol: two root nixpkgs inputs" ok scripts/step/parse.sh GITHUB_EVENT_NAME=schedule
 expect_eol warning "inputs.nixpkgs1 follows nixos-25.11, which reaches its end of life on 2026-06-30, in 15 days; ${ADVICE}"
-[[ -z ${current} ]] || (($(eol_findings | wc -l) == 1)) || report "not one finding: $(eol_findings)"
+expect_one_eol
 finish
 
 action_setup
@@ -120,7 +133,7 @@ given_lock duplicates
 fixed_time 2027-01-01T00:00:00Z
 run "nixpkgs-eol: only inputs of the root" ok scripts/step/parse.sh GITHUB_EVENT_NAME=schedule
 expect_eol violation "inputs.nixpkgs follows nixos-26.05, which reached its end of life on 2026-12-31; ${ADVICE}"
-[[ -z ${current} ]] || (($(eol_findings | wc -l) == 1)) || report "not one finding: $(eol_findings)"
+expect_one_eol
 finish
 
 action_setup
@@ -128,7 +141,7 @@ given_tools
 nixpkgs_lock nixos-26.05
 run "nixpkgs-eol: off" ok scripts/step/parse.sh NIXPKGS_EOL=false
 [[ -z ${current} || ! -e ${state}/findings/nixpkgs-eol.json ]] \
-  || report "the end of life was checked: $(eol_findings)"
+  || report "the end of life was checked: $(<"${state}/findings/nixpkgs-eol.json")"
 finish
 
 action_setup

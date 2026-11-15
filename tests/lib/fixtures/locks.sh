@@ -28,6 +28,16 @@ given_tools() {
   given_tool gh "${root}/tests/bin/gh"
 }
 
+# given_failing_jq ARGUMENT: the step tools built the jq stub of tests/stubs,
+# which fails when ARGUMENT is one of its arguments, and the gh stub.
+given_failing_jq() {
+  local argument=$1
+  given_tool jq "${root}/tests/stubs/jq"
+  given_tool gh "${root}/tests/bin/gh"
+  printf '%s\n' "${argument}" >"${work}/fixtures/jq-fail"
+  apply HOST_JQ="${HOST_JQ}"
+}
+
 # parsed FILTER: prints FILTER of what step/parse.sh wrote, as text.
 parsed() {
   local filter=$1
@@ -51,15 +61,17 @@ findings() {
 
 # expect_finding RULE MESSAGE: RULE found a violation whose message is MESSAGE.
 expect_finding() {
-  local rule=$1 message=$2
-  [[ -z ${current} ]] || findings "${rule}" | grep -qxF -- "${message}" \
-    || report "no ${rule} finding '${message}' in: $(findings "${rule}")"
+  local rule=$1 message=$2 found
+  [[ -n ${current} ]] || return 0
+  found=$(findings "${rule}")
+  grep -qxF -- "${message}" <<<"${found}" || report "no ${rule} finding '${message}' in: ${found}"
 }
 
 # expect_findings RULE COUNT: RULE found COUNT violations.
 expect_findings() {
-  local rule=$1 count=$2 actual
+  local rule=$1 count=$2 actual found
   [[ -n ${current} ]] || return 0
-  actual=$(findings "${rule}" | wc -l)
-  ((actual == count)) || report "${actual} ${rule} findings, expected ${count}: $(findings "${rule}")"
+  actual=$(jq length "${state}/findings/${rule}.json")
+  found=$(findings "${rule}")
+  ((actual == count)) || report "${actual} ${rule} findings, expected ${count}: ${found}"
 }

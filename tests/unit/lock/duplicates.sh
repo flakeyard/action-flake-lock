@@ -31,8 +31,9 @@ action_setup
 given_tools
 given_lock duplicates
 run "duplicates: two dirs of one repository are two sources" ok scripts/step/parse.sh
-[[ -z ${current} ]] || ! findings duplicates | grep -qF github.com/o/r \
-  || report "dir-a and dir-b are reported: $(findings duplicates)"
+found=$(findings duplicates)
+[[ -z ${current} ]] || ! grep -qF github.com/o/r <<<"${found}" \
+  || report "dir-a and dir-b are reported: ${found}"
 finish
 
 action_setup

@@ -19,6 +19,7 @@ readonly TOOLS=(jq gh)
 main() {
   local nix system name
   nix=$(job_tool nix) || fail "No nix on PATH: install Nix with flakes enabled before this action, such as with flakeyard/action-setup-nix."
+  # shellcheck disable=SC2310 # job_system is one command: errexit has nothing to stop.
   system=$(job_system "${nix}") || fail "Cannot read the system of ${nix}."
   rm -rf -- "${STATE_DIR}"
   for name in "${TOOLS[@]}"; do

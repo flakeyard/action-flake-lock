@@ -111,7 +111,9 @@ apply_newer_major() {
 main() {
   local gh listed repos=()
   # The jq of the action, for parsed_jq and the records.
+  # shellcheck disable=SC2310 # tool checks each of its steps and returns their failure.
   jq=$(tool jq) || fail "The tools step did not build jq."
+  # shellcheck disable=SC2310 # as above
   gh=$(tool gh) || fail "The tools step did not build gh."
   use_token
   export PATH=${gh%/*}:${PATH}

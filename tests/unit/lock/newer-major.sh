@@ -3,7 +3,9 @@
 # that the date stub of the shell library gives.
 # shellcheck disable=SC2154 # work and state come from action_setup.
 
-d() { printf "$1%.0s" {1..40}; }
+# The revisions of the tests: rev[X] is X 40 times.
+declare -A rev
+for x in {0..9}; do printf -v "rev[${x}]" "${x}%.0s" {1..40}; done
 
 # majors_lock INPUT...: a lock with a flakeyard input inN for each INPUT,
 # REPO|REF|REV, which has no ref when REF is "-".
@@ -28,19 +30,21 @@ major_findings() {
 
 # expect_major MESSAGE: the rule warned with MESSAGE.
 expect_major() {
-  local message=$1
-  [[ -z ${current} ]] || major_findings | grep -qxF -- "${message}" \
-    || report "no warning '${message}' in: $(major_findings)"
+  local message=$1 found
+  [[ -n ${current} ]] || return 0
+  found=$(major_findings)
+  grep -qxF -- "${message}" <<<"${found}" || report "no warning '${message}' in: ${found}"
 }
 
 # expect_majors COUNT: the rule wrote COUNT findings, all of them warnings.
 expect_majors() {
-  local count=$1 actual warnings
+  local count=$1 actual warnings found
   [[ -n ${current} ]] || return 0
   actual=$(jq length "${state}/findings/newer-major.json")
-  warnings=$(major_findings | wc -l)
+  warnings=$(jq '[.[] | select(.level == "warning")] | length' "${state}/findings/newer-major.json")
+  found=$(major_findings)
   ((actual == count && warnings == count)) \
-    || report "${actual} findings, expected ${count} warnings: $(major_findings)"
+    || report "${actual} findings, expected ${count} warnings: ${found}"
 }
 
 # major_case NAME TIME INPUT...: parse a lock of INPUT, as majors_lock takes
@@ -68,8 +72,8 @@ readonly URL=https://github.com/flakeyard/atom-m/releases/tag
 
 # --- the support of the major version of the input -----------------
 
-major_case "no newer major version" "${NOW}" "atom-m|v1|$(d 1)"
-releases_of atom-m "v1.0.0=$(d 0)" "v1.1.0=$(d 1)" "v0.1.0=$(d 9):prerelease"
+major_case "no newer major version" "${NOW}" "atom-m|v1|${rev[1]}"
+releases_of atom-m "v1.0.0=${rev[0]}" "v1.1.0=${rev[1]}" "v0.1.0=${rev[9]}:prerelease"
 look_up_releases "no newer major version"
 expect_majors 0
 finish
@@ -77,12 +81,12 @@ finish
 # next_major_releases: v1 and the next major version v2, first released on
 # 2026-11-03.
 next_major_releases() {
-  releases_of atom-m "v1.0.0=$(d 0)" "v1.1.0=$(d 1)" "v2.0.0=$(d 2)@2026-11-03T08:00:00Z" \
-    "v2.1.0=$(d 3)@2026-11-10T08:00:00Z"
+  releases_of atom-m "v1.0.0=${rev[0]}" "v1.1.0=${rev[1]}" "v2.0.0=${rev[2]}@2026-11-03T08:00:00Z" \
+    "v2.1.0=${rev[3]}@2026-11-10T08:00:00Z"
 }
 
 while IFS='|' read -r time fixes; do
-  major_case "the next major version at ${time}" "${time}" "atom-m|v1|$(d 1)"
+  major_case "the next major version at ${time}" "${time}" "atom-m|v1|${rev[1]}"
   next_major_releases
   look_up_releases "the next major version at ${time}"
   expect_majors 1
@@ -94,46 +98,48 @@ done <<'CASES'
 2027-05-04T00:00:00Z|received
 CASES
 
-major_case "two newer major versions" "${NOW}" "atom-m|v1.1.0|$(d 1)"
-releases_of atom-m "v1.1.0=$(d 1)" "v2.0.0=$(d 2)@2026-03-10T08:00:00Z" "v3.1.0=$(d 4)" \
-  "v3.0.0=$(d 3)@2026-11-03T08:00:00Z"
+major_case "two newer major versions" "${NOW}" "atom-m|v1.1.0|${rev[1]}"
+releases_of atom-m "v1.1.0=${rev[1]}" "v2.0.0=${rev[2]}@2026-03-10T08:00:00Z" "v3.1.0=${rev[4]}" \
+  "v3.0.0=${rev[3]}@2026-11-03T08:00:00Z"
 look_up_releases "two newer major versions"
 expect_major "inputs.in0 of flakeyard/atom-m follows v1, and v3 is released: v3.0.0 on 2026-11-03, newest v3.1.0. v1 receives no fixes; only v2 receives security fixes until 2027-05-03. The migration guides are in the release notes of v2.0.0, ${URL}/v2.0.0; v3.0.0, ${URL}/v3.0.0."
 finish
 
-major_case "a v0 input without v1.0.0" "${NOW}" "atom-m|v0|$(d 1)"
-releases_of atom-m "v0.1.0=$(d 1):prerelease" "v0.2.0=$(d 2):prerelease" "v1.0.0=$(d 3):prerelease"
+major_case "a v0 input without v1.0.0" "${NOW}" "atom-m|v0|${rev[1]}"
+releases_of atom-m "v0.1.0=${rev[1]}:prerelease" "v0.2.0=${rev[2]}:prerelease" "v1.0.0=${rev[3]}:prerelease"
 look_up_releases "a v0 input without v1.0.0"
 expect_majors 0
 finish
 
-major_case "a v0 input with v1.0.0" "${NOW}" "atom-m|v0|$(d 1)"
-releases_of atom-m "v0.1.0=$(d 1):prerelease" "v1.0.0=$(d 3)@2026-08-31T23:30:00Z"
+major_case "a v0 input with v1.0.0" "${NOW}" "atom-m|v0|${rev[1]}"
+releases_of atom-m "v0.1.0=${rev[1]}:prerelease" "v1.0.0=${rev[3]}@2026-08-31T23:30:00Z"
 look_up_releases "a v0 input with v1.0.0"
 expect_major "inputs.in0 of flakeyard/atom-m follows v0, and v1 is released: v1.0.0 on 2026-08-31, newest v1.0.0. 0.y.z releases are previews without support. The migration guide is in the release notes of v1.0.0, ${URL}/v1.0.0."
 finish
 
 # --- which releases count -----------------------------------------
 
-major_case "releases that do not count" "${NOW}" "atom-m|v1|$(d 1)"
-releases_of atom-m "v1.1.0=$(d 1)" "v2.0.0=$(d 2):prerelease" "v3.0.0=$(d 3):draft" \
-  "v4.0.0=$(d 4):mutable" "v5.0.0-rc.1=$(d 5)" "v6=$(d 6)" "7.0.0=$(d 7)"
+major_case "releases that do not count" "${NOW}" "atom-m|v1|${rev[1]}"
+releases_of atom-m "v1.1.0=${rev[1]}" "v2.0.0=${rev[2]}:prerelease" "v3.0.0=${rev[3]}:draft" \
+  "v4.0.0=${rev[4]}:mutable" "v5.0.0-rc.1=${rev[5]}" "v6=${rev[6]}" "7.0.0=${rev[7]}"
 look_up_releases "pre-releases, drafts, mutable releases and other tags do not count"
 expect_majors 0
 finish
 
-major_case "a first release other than vK.0.0" "${NOW}" "atom-m|v1|$(d 1)"
-releases_of atom-m "v1.1.0=$(d 1)" "v2.0.0=$(d 2):mutable" "v2.0.1=$(d 3)@2026-08-31T08:00:00Z" \
-  "v2.2.0=$(d 5)" "v2.0.0-rc.1=$(d 4)" "v3.0.0=$(d 6):prerelease"
+major_case "a first release other than vK.0.0" "${NOW}" "atom-m|v1|${rev[1]}"
+releases_of atom-m "v1.1.0=${rev[1]}" "v2.0.0=${rev[2]}:mutable" "v2.0.1=${rev[3]}@2026-08-31T08:00:00Z" \
+  "v2.2.0=${rev[5]}" "v2.0.0-rc.1=${rev[4]}" "v3.0.0=${rev[6]}:prerelease"
 look_up_releases "the first release of a major version is its lowest release that counts"
 expect_major "inputs.in0 of flakeyard/atom-m follows v1, and v2 is released: v2.0.1 on 2026-08-31, newest v2.2.0. v1 receives security fixes until 2027-02-28. The migration guide is in the release notes of v2.0.1, ${URL}/v2.0.1."
 finish
 
 while IFS='|' read -r published end; do
-  major_case "a first release on ${published}" "${NOW}" "atom-m|v1|$(d 1)"
-  releases_of atom-m "v1.1.0=$(d 1)" "v2.0.0=$(d 2)@${published}T08:00:00Z"
+  major_case "a first release on ${published}" "${NOW}" "atom-m|v1|${rev[1]}"
+  releases_of atom-m "v1.1.0=${rev[1]}" "v2.0.0=${rev[2]}@${published}T08:00:00Z"
   look_up_releases "6 months after ${published} is ${end}"
-  expect_major "inputs.in0 of flakeyard/atom-m follows v1, and v2 is released: v2.0.0 on ${published}, newest v2.0.0. v1 $([[ ${end} > 2026-11-12 ]] && echo receives || echo received) security fixes until ${end}. The migration guide is in the release notes of v2.0.0, ${URL}/v2.0.0."
+  fixes=received
+  if [[ ${end} > 2026-11-12 ]]; then fixes=receives; fi
+  expect_major "inputs.in0 of flakeyard/atom-m follows v1, and v2 is released: v2.0.0 on ${published}, newest v2.0.0. v1 ${fixes} security fixes until ${end}. The migration guide is in the release notes of v2.0.0, ${URL}/v2.0.0."
   finish
 done <<'CASES'
 2026-12-31|2027-06-30
@@ -144,34 +150,34 @@ CASES
 
 # --- which inputs ---------------------------------------------------
 
-major_case "inputs without ref" "${NOW}" "atom-m|-|$(d 1)" "atom-m|-|$(d 8)"
+major_case "inputs without ref" "${NOW}" "atom-m|-|${rev[1]}" "atom-m|-|${rev[8]}"
 next_major_releases
 look_up_releases "an input without ref is of the major version of its rev"
 expect_majors 1
 expect_major "inputs.in0 of flakeyard/atom-m is at v1, and v2 is released: v2.0.0 on 2026-11-03, newest v2.1.0. v1 receives security fixes until 2027-05-03. The migration guide is in the release notes of v2.0.0, ${URL}/v2.0.0."
 finish
 
-major_case "two nodes and refs" "${NOW}" "atom-m|v1|$(d 1)" "atom-m|v1|$(d 0)" "atom-m|main|$(d 1)" "atom-m|v2|$(d 2)"
+major_case "two nodes and refs" "${NOW}" "atom-m|v1|${rev[1]}" "atom-m|v1|${rev[0]}" "atom-m|main|${rev[1]}" "atom-m|v2|${rev[2]}"
 next_major_releases
 look_up_releases "two nodes of one major version warn each; a ref that is no major version, none"
 expect_majors 2
 expect_major "inputs.in1 of flakeyard/atom-m follows v1, and v2 is released: v2.0.0 on 2026-11-03, newest v2.1.0. v1 receives security fixes until 2027-05-03. The migration guide is in the release notes of v2.0.0, ${URL}/v2.0.0."
 finish
 
-major_case "a repository that was not looked up" "${NOW}" "atom-m|v1|$(d 1)" "atom-gone|v1|$(d 1)"
+major_case "a repository that was not looked up" "${NOW}" "atom-m|v1|${rev[1]}" "atom-gone|v1|${rev[1]}"
 next_major_releases
 look_up_releases "a repository that was not looked up has no warning"
 expect_majors 1
 expect_finding release "Could not verify inputs.in1, flakeyard/atom-gone: the GitHub API failed, see the log."
 finish
 
-major_case "the rule off" "${NOW}" "atom-m|v1|$(d 1)"
+major_case "the rule off" "${NOW}" "atom-m|v1|${rev[1]}"
 next_major_releases
 look_up_releases "off" NEWER_MAJOR=false
-[[ -z ${current} || ! -e ${state}/findings/newer-major.json ]] || report "the rule ran: $(major_findings)"
+[[ -z ${current} || ! -e ${state}/findings/newer-major.json ]] || report "the rule ran: $(<"${state}/findings/newer-major.json")"
 finish
 
-major_case "no time" "${NOW}" "atom-m|v1|$(d 1)"
+major_case "no time" "${NOW}" "atom-m|v1|${rev[1]}"
 next_major_releases
 rm -- "${work}/fixtures/now"
 run "newer-major: takes the date from date" fail scripts/step/releases.sh TOKEN=ghs_x

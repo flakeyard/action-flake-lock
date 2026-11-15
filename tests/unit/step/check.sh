@@ -79,6 +79,13 @@ run "check: a named pipe" fail scripts/step/check.sh
 expect message "The lock file flake.lock is not a regular file."
 finish
 
+action_setup
+run "check: a workspace that cannot be resolved fails the step" fail scripts/step/check.sh \
+  GITHUB_WORKSPACE="${work}/missing"
+expect message "${work}/missing: No such file or directory"
+expect no-message "No lock file at"
+finish
+
 # --- allow-duplicates and the switches of the rules ---------------
 
 action_setup
@@ -132,15 +139,16 @@ expect errors 6
 finish
 
 # twelve_sources: twelve sources of allow-duplicates that are not normalized.
-twelve_sources() {
-  local i
-  for i in {1..12}; do printf 'github.com/O/r%s\n' "${i}"; done
+sources() {
+  local count=$1 i
+  for ((i = 1; i <= count; i++)); do printf 'github.com/O/r%s\n' "${i}"; done
 }
 
 action_setup
 lock_fixture
+list=$(sources 12)
 run "check: at most 10 errors, the last says how many more" fail scripts/step/check.sh \
-  ALLOW_DUPLICATES="$(twelve_sources)"
+  ALLOW_DUPLICATES="${list}"
 expect errors 10
 expect message "Invalid source 'github.com/O/r9'"
 expect no-message "'github.com/O/r10'"
@@ -149,8 +157,9 @@ finish
 
 action_setup
 lock_fixture
+list=$(sources 10)
 run "check: ten errors are all shown" fail scripts/step/check.sh \
-  ALLOW_DUPLICATES="$(twelve_sources | head -10)"
+  ALLOW_DUPLICATES="${list}"
 expect errors 10
 expect message "Invalid source 'github.com/O/r10'"
 expect no-message "more errors"

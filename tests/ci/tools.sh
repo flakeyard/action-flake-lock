@@ -16,10 +16,11 @@ build() {
 
 # check_package PACKAGE: PACKAGE builds to one path, and its tool runs.
 check_package() {
-  local package=$1 paths started=${SECONDS}
+  local package=$1 paths count started=${SECONDS}
   paths=$(build "${package}")
   if [[ -z ${paths} || ${paths} == *$'\n'* ]]; then
-    echo "::error::${package} built to $(wc -l <<<"${paths}") paths, expected one: ${paths//$'\n'/ }"
+    count=$(wc -l <<<"${paths}")
+    echo "::error::${package} built to ${count} paths, expected one: ${paths//$'\n'/ }"
     return 1
   fi
   "${paths}/bin/${package}" --version
