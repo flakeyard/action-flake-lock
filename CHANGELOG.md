@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.1](https://github.com/flakeyard/action-flake-lock/compare/v0.3.0...v0.3.1) (2026-11-15)
+
+
+### Bug Fixes
+
+* **deps:** update flakeyard/action-shell-lib action to v0.3.2 ([#75](https://github.com/flakeyard/action-flake-lock/issues/75)) ([8705f97](https://github.com/flakeyard/action-flake-lock/commit/8705f97d9195d7066c9c04b24388839130961306))
+* keep the exit codes of command substitutions and of functions under set -e ([#70](https://github.com/flakeyard/action-flake-lock/issues/70)) ([17a3ff9](https://github.com/flakeyard/action-flake-lock/commit/17a3ff9a1216a5f9d0267dd7fc8cb1281c10db11))
+
 ## [0.3.0](https://github.com/flakeyard/action-flake-lock/compare/v0.2.3...v0.3.0) (2026-11-13)
 
 
