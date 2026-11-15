@@ -26,19 +26,21 @@ workspace() {
 # lock_file PATH: prints the real path of PATH, relative to the workspace;
 # fails when it does not exist.
 lock_file() {
-  local path=$1
-  realpath -e -- "$(workspace)/${path}" 2>/dev/null
+  local path=$1 root
+  root=$(workspace) || return
+  realpath -e -- "${root}/${path}" 2>/dev/null
 }
 
 # lock_problem PATH: prints why PATH, relative to the workspace, cannot be
 # read as the lock file; prints nothing when it can.
 lock_problem() {
-  local path=$1 real
+  local path=$1 root real
+  root=$(workspace) || return
   if [[ -z ${path} || ${path} == /* ]]; then
     echo "path must be relative to the workspace, not '${path}'."
   elif ! real=$(lock_file "${path}"); then
     echo "No lock file at ${path}."
-  elif [[ ${real} != "$(workspace)"/* ]]; then
+  elif [[ ${real} != "${root}"/* ]]; then
     echo "The lock file ${path} is outside the workspace."
   elif [[ ! -f ${real} ]]; then
     echo "The lock file ${path} is not a regular file."

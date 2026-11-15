@@ -33,7 +33,7 @@ given_tools
 given_lock pin-form
 run "pin-form: off" ok scripts/step/parse.sh PIN_FORM=false
 [[ -z ${current} || ! -e ${state}/findings/pin-form.json ]] \
-  || report "pin form was checked: $(findings pin-form)"
+  || report "pin form was checked: $(<"${state}/findings/pin-form.json")"
 finish
 
 action_setup

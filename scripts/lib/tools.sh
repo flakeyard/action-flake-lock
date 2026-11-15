@@ -61,7 +61,7 @@ realise_tool() {
 tool() {
   local name=$1 path
   [[ -r ${TOOLS_DIR}/${name} ]] || return 1
-  path=$(<"${TOOLS_DIR}/${name}")/bin/${name}
+  path=$(<"${TOOLS_DIR}/${name}")/bin/${name} || return 1
   [[ -x ${path} ]] && printf '%s\n' "${path}"
 }
 

@@ -47,6 +47,7 @@ lock_jq() {
 # check_lock LOCK: fails unless LOCK is one lock file of a supported version.
 check_lock() {
   local lock=$1 problem
+  # shellcheck disable=SC2310 # lock_jq is one command: errexit has nothing to stop.
   problem=$(lock_jq "${lock}" "${PROBLEM_PROGRAM}" 2>/dev/null) \
     || fail "The lock file ${LOCK_PATH} is not valid JSON."
   [[ -z ${problem} ]] || fail "The lock file ${LOCK_PATH} ${problem}."
@@ -55,9 +56,10 @@ check_lock() {
 # rule_jq PROGRAM [ARG...]: runs PROGRAM on the parsed lock, with the lines
 # of allow-duplicates and the options ARG of jq.
 rule_jq() {
-  local program=$1
+  local program=$1 allowed
   shift
-  parsed_jq "${program}" --arg allowed "$(items "${ALLOW_DUPLICATES-}")" "$@"
+  allowed=$(items "${ALLOW_DUPLICATES-}")
+  parsed_jq "${program}" --arg allowed "${allowed}" "$@"
 }
 
 # apply_nixpkgs_eol: the findings of the end of life of nixpkgs, today, which
@@ -85,6 +87,7 @@ apply_rules() {
 main() {
   local reason lock
   # The jq of the action, for lock_jq and parsed_jq.
+  # shellcheck disable=SC2310 # tool checks each of its steps and returns their failure.
   jq=$(tool jq) || fail "The tools step did not build jq."
   reason=$(lock_problem "${LOCK_PATH}")
   [[ -z ${reason} ]] || fail "${reason}"

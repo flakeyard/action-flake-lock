@@ -20,16 +20,13 @@ readonly EXPECTED=(
 export SHELL_LIB=${SHELL_LIB:?} TOKEN=${TOKEN:?} LOCK_PATH=${LOCK} ALLOW_DUPLICATES="" PIN_FORM=true \
   NIXPKGS_EOL=true NEWER_MAJOR=true GITHUB_ACTION_PATH=${PWD}
 
-# run_lines: prints the run line of each step of action.yml that has one.
-run_lines() {
-  yq -r '.runs.steps[] | select(has("run")) | .run' action.yml
-}
-
 # run_steps: prints what the steps printed; fails unless only the last one,
 # the report, failed. It runs in a condition, where set -e is off.
 run_steps() {
-  local lines line
-  mapfile -t lines < <(run_lines)
+  local text lines line
+  # The run line of each step of action.yml that has one.
+  text=$(yq -r '.runs.steps[] | select(has("run")) | .run' action.yml) || return 1
+  mapfile -t lines <<<"${text}"
   ((${#lines[@]} > 1)) || return 1
   for line in "${lines[@]:0:${#lines[@]}-1}"; do
     eval "${line}" || return 1
@@ -43,6 +40,7 @@ shown() {
   grep -v '^::add-mask::' <<<"${output}" | sed 's/^::/: :/'
 }
 
+# shellcheck disable=SC2310 # run_steps checks every status itself.
 output=$(run_steps) || {
   echo "::error::The steps did not fail in the report only."
   shown "${output}"
