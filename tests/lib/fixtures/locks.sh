@@ -28,6 +28,16 @@ given_tools() {
   given_tool gh "${root}/tests/bin/gh"
 }
 
+# given_failing_jq ARGUMENT: the step tools built the jq stub of tests/stubs,
+# which fails when ARGUMENT is one of its arguments, and the gh stub.
+given_failing_jq() {
+  local argument=$1
+  given_tool jq "${root}/tests/stubs/jq"
+  given_tool gh "${root}/tests/bin/gh"
+  printf '%s\n' "${argument}" >"${work}/fixtures/jq-fail"
+  apply HOST_JQ="${HOST_JQ}"
+}
+
 # parsed FILTER: prints FILTER of what step/parse.sh wrote, as text.
 parsed() {
   local filter=$1

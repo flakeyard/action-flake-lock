@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Unit tests of the scripts of this repository, with the harness and the stubs
-# of gh, date and sleep of the shell library in SHELL_LIB, and stubs of nix and
-# of the gh of the action in tests/bin. tests/unit mirrors scripts/: one suite
-# per script or helper, and static tests of action.yml, which need yq.
+# of gh, date and sleep of the shell library in SHELL_LIB, stubs of nix and
+# of the gh of the action in tests/bin, and a jq that fails in tests/stubs.
+# tests/unit mirrors scripts/: one suite per script or helper, and static tests
+# of action.yml, which need yq.
 # Usage: SHELL_LIB=<shell library> tests/run.sh
 # shellcheck source-path=SCRIPTDIR
 set -uo pipefail

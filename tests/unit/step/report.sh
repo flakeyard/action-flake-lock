@@ -217,6 +217,16 @@ expect message "::warning::3 more warnings are not shown here; the job summary l
 expect summary '`inputs.m6`'
 finish
 
+action_setup
+given_failing_jq --raw-output0
+no_findings
+json=$(eol_findings_of 1 warning)
+given_findings nixpkgs-eol "${json}"
+run "report: a failing jq of the titles fails the step" fail scripts/step/report.sh
+expect message "jq: error: stub jq fails on --raw-output0"
+[[ -z ${current} ]] || ! grep -qF '| Check |' "${work}/summary" || report "a table without rows in the summary"
+finish
+
 # --- names of the lock -------------------------------------------
 
 action_setup

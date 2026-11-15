@@ -79,6 +79,13 @@ run "check: a named pipe" fail scripts/step/check.sh
 expect message "The lock file flake.lock is not a regular file."
 finish
 
+action_setup
+run "check: a workspace that cannot be resolved fails the step" fail scripts/step/check.sh \
+  GITHUB_WORKSPACE="${work}/missing"
+expect message "${work}/missing: No such file or directory"
+expect no-message "No lock file at"
+finish
+
 # --- allow-duplicates and the switches of the rules ---------------
 
 action_setup
