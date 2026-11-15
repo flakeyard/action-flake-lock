@@ -12,11 +12,11 @@ set -euo pipefail
 # Builtins only until lib/env.sh replaces PATH, which is the job's.
 lib=${BASH_SOURCE[0]%/*}/../lib
 # shellcheck source-path=SCRIPTDIR source=../lib/env.sh
-source "$lib/env.sh"
+source "${lib}/env.sh"
 # shellcheck source=/dev/null
-source "$SHELL_LIB/report.sh"
+source "${SHELL_LIB}/report.sh"
 # shellcheck source-path=SCRIPTDIR source=../lib/tools.sh
-source "$lib/tools.sh"
+source "${lib}/tools.sh"
 
 # The kind of the annotation of each finding: error for a violation, else its
 # level; and the title of each rule, and of an input that could not be
@@ -46,7 +46,7 @@ readonly RULES
 require_findings() {
   local rule
   for rule in "${RULES[@]}"; do
-    [[ -f $FINDINGS_DIR/$rule.json ]] || fail "The findings of $rule are missing: an earlier step did not run."
+    [[ -f ${FINDINGS_DIR}/${rule}.json ]] || fail "The findings of ${rule} are missing: an earlier step did not run."
   done
 }
 
@@ -55,40 +55,40 @@ require_findings() {
 all_findings() {
   local rule files=()
   for rule in "${RULES[@]}"; do
-    files+=("$FINDINGS_DIR/$rule.json")
+    files+=("${FINDINGS_DIR}/${rule}.json")
   done
-  "$jq" -s "$ORDER_PROGRAM" "${files[@]}"
+  "${jq}" -s "${ORDER_PROGRAM}" "${files[@]}"
 }
 
 # report_finding KIND TITLE INPUT MESSAGE: one row of the summary, one
 # annotation of KIND: error, warning or notice.
 report_finding() {
   local kind=$1 title=$2 input=$3 message=$4 check=$2
-  [[ $kind =~ $KIND_FORM ]] || fail "Unknown kind of finding '$kind'."
-  [[ $kind == error ]] || check+=" ($kind)"
-  summary "| $check | $(code_span "$input") | $(code_span "$message") |"
-  "$kind" "$message" "$LOCK_PATH" "$title: $input"
+  [[ ${kind} =~ ${KIND_FORM} ]] || fail "Unknown kind of finding '${kind}'."
+  [[ ${kind} == error ]] || check+=" (${kind})"
+  summary "| ${check} | $(code_span "${input}") | $(code_span "${message}") |"
+  "${kind}" "${message}" "${LOCK_PATH}" "${title}: ${input}"
 }
 
 # report_all FINDINGS: the summary and the annotations of the JSON array
 # FINDINGS.
 report_all() {
   local findings=$1 kind title input message
-  summary "### $(code_span "$LOCK_PATH")"
+  summary "### $(code_span "${LOCK_PATH}")"
   summary ""
   summary "| Check | Input | Problem |"
   summary "| --- | --- | --- |"
   while IFS= read -r -d '' kind && IFS= read -r -d '' title \
     && IFS= read -r -d '' input && IFS= read -r -d '' message; do
-    report_finding "$kind" "$title" "$input" "$message"
-  done < <("$jq" --raw-output0 "$TITLES_PROGRAM" <<<"$findings")
+    report_finding "${kind}" "${title}" "${input}" "${message}"
+  done < <("${jq}" --raw-output0 "${TITLES_PROGRAM}" <<<"${findings}")
   flush "the job summary lists all of them"
 }
 
 # report_pass: the lock has no violation.
 report_pass() {
-  notice "$LOCK_PATH passes every check of action-flake-lock."
-  summary "$(code_span "$LOCK_PATH") passes every check of action-flake-lock."
+  notice "${LOCK_PATH} passes every check of action-flake-lock."
+  summary "$(code_span "${LOCK_PATH}") passes every check of action-flake-lock."
 }
 
 main() {
@@ -97,12 +97,12 @@ main() {
   jq=$(tool jq) || fail "The tools step did not build jq."
   require_findings
   findings=$(all_findings)
-  count=$("$jq" "$VIOLATIONS_PROGRAM" <<<"$findings")
+  count=$("${jq}" "${VIOLATIONS_PROGRAM}" <<<"${findings}")
   ((count > 0)) || report_pass
-  [[ $findings == "[]" ]] || report_all "$findings"
+  [[ ${findings} == "[]" ]] || report_all "${findings}"
   ((count > 0)) || return 0
   # A plain line: the annotations are spent on the findings.
-  echo "$LOCK_PATH has $count problems; the job summary lists them."
+  echo "${LOCK_PATH} has ${count} problems; the job summary lists them."
   exit 1
 }
 

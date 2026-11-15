@@ -5,9 +5,9 @@
 # lock_fixture [PATH]: an empty lock file at PATH of the workspace, flake.lock
 # by default.
 lock_fixture() {
-  local path=$work/workspace/${1:-flake.lock}
+  local path=${work}/workspace/${1:-flake.lock}
   mkdir -p "${path%/*}"
-  echo '{}' >"$path"
+  echo '{}' >"${path}"
 }
 
 # --- server -------------------------------------------------------
@@ -38,7 +38,7 @@ finish
 
 action_setup
 lock_fixture
-run "check: an absolute path" fail scripts/step/check.sh LOCK_PATH="$work/workspace/flake.lock"
+run "check: an absolute path" fail scripts/step/check.sh LOCK_PATH="${work}/workspace/flake.lock"
 expect message "path must be relative to the workspace"
 finish
 
@@ -49,32 +49,32 @@ expect message "path must be relative to the workspace, not ''"
 finish
 
 action_setup
-echo '{}' >"$work/outside.lock"
+echo '{}' >"${work}/outside.lock"
 run "check: a path out of the workspace" fail scripts/step/check.sh LOCK_PATH=../outside.lock
 expect message "The lock file ../outside.lock is outside the workspace."
 finish
 
 action_setup
-echo '{}' >"$work/outside.lock"
-ln -s ../outside.lock "$work/workspace/flake.lock"
+echo '{}' >"${work}/outside.lock"
+ln -s ../outside.lock "${work}/workspace/flake.lock"
 run "check: a link out of the workspace" fail scripts/step/check.sh
 expect message "The lock file flake.lock is outside the workspace."
 finish
 
 action_setup
 lock_fixture real.lock
-ln -s real.lock "$work/workspace/flake.lock"
+ln -s real.lock "${work}/workspace/flake.lock"
 run "check: a link inside the workspace" ok scripts/step/check.sh
 finish
 
 action_setup
-mkdir "$work/workspace/flake.lock"
+mkdir "${work}/workspace/flake.lock"
 run "check: a directory" fail scripts/step/check.sh
 expect message "The lock file flake.lock is not a regular file."
 finish
 
 action_setup
-mkfifo "$work/workspace/flake.lock"
+mkfifo "${work}/workspace/flake.lock"
 run "check: a named pipe" fail scripts/step/check.sh
 expect message "The lock file flake.lock is not a regular file."
 finish
@@ -92,7 +92,7 @@ for source in github.com/NixOS/nixpkgs gitlab.com/o/r github.com/o "github.com/o
   "github.com/o/r?ref=main" "https://github.com/o/r" "github.com/o/r?dir=a b"; do
   action_setup
   lock_fixture
-  run "check: rejects '$source' in allow-duplicates" fail scripts/step/check.sh ALLOW_DUPLICATES="$source"
+  run "check: rejects '${source}' in allow-duplicates" fail scripts/step/check.sh ALLOW_DUPLICATES="${source}"
   expect message "Invalid source"
   finish
 done
@@ -101,15 +101,15 @@ for input in PIN_FORM=pin-form NIXPKGS_EOL=nixpkgs-eol NEWER_MAJOR=newer-major; 
   for value in false true; do
     action_setup
     lock_fixture
-    run "check: ${input#*=} $value" ok scripts/step/check.sh "${input%=*}=$value"
+    run "check: ${input#*=} ${value}" ok scripts/step/check.sh "${input%=*}=${value}"
     finish
   done
 
   for value in "" yes True; do
     action_setup
     lock_fixture
-    run "check: rejects ${input#*=} '$value'" fail scripts/step/check.sh "${input%=*}=$value"
-    expect message "${input#*=} must be true or false, not '$value'."
+    run "check: rejects ${input#*=} '${value}'" fail scripts/step/check.sh "${input%=*}=${value}"
+    expect message "${input#*=} must be true or false, not '${value}'."
     finish
   done
 done
@@ -121,7 +121,7 @@ lock_fixture
 run "check: an input cannot start a workflow command" fail scripts/step/check.sh \
   PIN_FORM=$'x\n::warning::forged\r'
 expect message "not 'x%0A::warning::forged%0D'"
-[[ -z $current ]] || ! grep -q '^::warning::' "$work/stdout" || report "a workflow command was started"
+[[ -z ${current} ]] || ! grep -q '^::warning::' "${work}/stdout" || report "a workflow command was started"
 finish
 
 action_setup
@@ -134,7 +134,7 @@ finish
 # twelve_sources: twelve sources of allow-duplicates that are not normalized.
 twelve_sources() {
   local i
-  for i in {1..12}; do printf 'github.com/O/r%s\n' "$i"; done
+  for i in {1..12}; do printf 'github.com/O/r%s\n' "${i}"; done
 }
 
 action_setup

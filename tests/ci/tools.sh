@@ -11,21 +11,21 @@ readonly PACKAGES=(jq gh)
 # build PACKAGE: prints the store paths of PACKAGE of the root flake.
 build() {
   local package=$1
-  nix build --no-link --print-out-paths --no-update-lock-file "path:.#$package"
+  nix build --no-link --print-out-paths --no-update-lock-file "path:.#${package}"
 }
 
 # check_package PACKAGE: PACKAGE builds to one path, and its tool runs.
 check_package() {
-  local package=$1 paths started=$SECONDS
-  paths=$(build "$package")
-  if [[ -z $paths || $paths == *$'\n'* ]]; then
-    echo "::error::$package built to $(wc -l <<<"$paths") paths, expected one: ${paths//$'\n'/ }"
+  local package=$1 paths started=${SECONDS}
+  paths=$(build "${package}")
+  if [[ -z ${paths} || ${paths} == *$'\n'* ]]; then
+    echo "::error::${package} built to $(wc -l <<<"${paths}") paths, expected one: ${paths//$'\n'/ }"
     return 1
   fi
-  "$paths/bin/$package" --version
-  echo "::notice::$package: $paths, built in $((SECONDS - started)) s"
+  "${paths}/bin/${package}" --version
+  echo "::notice::${package}: ${paths}, built in $((SECONDS - started)) s"
 }
 
 for package in "${PACKAGES[@]}"; do
-  check_package "$package"
+  check_package "${package}"
 done

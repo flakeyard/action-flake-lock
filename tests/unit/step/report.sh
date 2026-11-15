@@ -5,15 +5,15 @@
 
 # given_findings RULE JSON: the step of RULE found the findings JSON.
 given_findings() {
-  local rule=$1 json=$2 dir=$state/findings
-  mkdir -p "$dir"
-  printf '%s\n' "$json" >"$dir/$rule.json"
+  local rule=$1 json=$2 dir=${state}/findings
+  mkdir -p "${dir}"
+  printf '%s\n' "${json}" >"${dir}/${rule}.json"
 }
 
 # no_findings: no rule found anything.
 no_findings() {
   local rule
-  for rule in duplicates pin-form release nixpkgs-eol newer-major; do given_findings "$rule" '[]'; done
+  for rule in duplicates pin-form release nixpkgs-eol newer-major; do given_findings "${rule}" '[]'; done
 }
 
 # findings_of COUNT: COUNT findings of pin-form as JSON.
@@ -54,8 +54,8 @@ expect message "flake.lock has 3 problems; the job summary lists them."
 expect errors 3
 expect summary '| Duplicated source | `github.com/o/r` | `r is locked 2 times` |'
 expect summary '| Release | `inputs.a` | `inputs.a of flakeyard/a: bad rev` |'
-[[ -z $current ]] || [[ $(grep -c '^| ' "$work/summary") == 5 ]] || report "not a table of 3 rows: $(cat "$work/summary")"
-[[ -z $current ]] || [[ $(tail -1 "$work/summary") == *"Could not verify"* ]] || report "an input that could not be verified is not last"
+[[ -z ${current} ]] || [[ $(grep -c '^| ' "${work}/summary") == 5 ]] || report "not a table of 3 rows: $(cat "${work}/summary")"
+[[ -z ${current} ]] || [[ $(tail -1 "${work}/summary") == *"Could not verify"* ]] || report "an input that could not be verified is not last"
 finish
 
 action_setup
@@ -141,7 +141,7 @@ expect message "::error file=flake.lock,title=End of life of nixpkgs%3A inputs.a
 expect message "flake.lock has 2 problems; the job summary lists them."
 expect errors 2
 expect warnings 1
-[[ -z $current ]] || [[ $(tail -1 "$work/summary") == *"(warning)"* ]] || report "a warning is not last"
+[[ -z ${current} ]] || [[ $(tail -1 "${work}/summary") == *"(warning)"* ]] || report "a warning is not last"
 finish
 
 action_setup
@@ -213,5 +213,5 @@ run "report: look up no releases" ok scripts/step/releases.sh TOKEN=ghs_x
 prepared
 run "report: names of the lock cannot leave their annotation" fail scripts/step/report.sh
 expect message '::error file=flake.lock,title=Pin form%3A inputs."a%2Cb%3Ac%2525\r\n%3A%3Awarning%3A%3Ax"::inputs."a,b:c%2525\r\n::warning::x" is not pinned'
-[[ -z $current ]] || ! grep -q '^::warning' "$work/stdout" || report "a name started a workflow command"
+[[ -z ${current} ]] || ! grep -q '^::warning' "${work}/stdout" || report "a name started a workflow command"
 finish

@@ -12,13 +12,13 @@ set -euo pipefail
 # Builtins only until lib/env.sh replaces PATH, which is the job's.
 lib=${BASH_SOURCE[0]%/*}/../lib
 # shellcheck source-path=SCRIPTDIR source=../lib/env.sh
-source "$lib/env.sh"
+source "${lib}/env.sh"
 # shellcheck source=/dev/null
-source "$SHELL_LIB/report.sh"
+source "${SHELL_LIB}/report.sh"
 # shellcheck source-path=SCRIPTDIR source=../lib/forms.sh
-source "$lib/forms.sh"
+source "${lib}/forms.sh"
 # shellcheck source-path=SCRIPTDIR source=../lib/tools.sh
-source "$lib/tools.sh"
+source "${lib}/tools.sh"
 
 # The programs of jq, over the documents of the lock file as $lock.
 # shellcheck disable=SC2016 # variables of jq
@@ -41,15 +41,15 @@ readonly NIXPKGS_EOL_PROGRAM='include "nixpkgs-eol"; $parsed[0] | [nixpkgs_eol_f
 # printed as text.
 lock_jq() {
   local lock=$1 program=$2
-  "$jq" -rn -L "$LOCK_MODULES" --slurpfile lock "$lock" "$program"
+  "${jq}" -rn -L "${LOCK_MODULES}" --slurpfile lock "${lock}" "${program}"
 }
 
 # check_lock LOCK: fails unless LOCK is one lock file of a supported version.
 check_lock() {
   local lock=$1 problem
-  problem=$(lock_jq "$lock" "$PROBLEM_PROGRAM" 2>/dev/null) \
-    || fail "The lock file $LOCK_PATH is not valid JSON."
-  [[ -z $problem ]] || fail "The lock file $LOCK_PATH $problem."
+  problem=$(lock_jq "${lock}" "${PROBLEM_PROGRAM}" 2>/dev/null) \
+    || fail "The lock file ${LOCK_PATH} is not valid JSON."
+  [[ -z ${problem} ]] || fail "The lock file ${LOCK_PATH} ${problem}."
 }
 
 # rule_jq PROGRAM [ARG...]: runs PROGRAM on the parsed lock, with the lines
@@ -57,7 +57,7 @@ check_lock() {
 rule_jq() {
   local program=$1
   shift
-  parsed_jq "$program" --arg allowed "$(items "${ALLOW_DUPLICATES-}")" "$@"
+  parsed_jq "${program}" --arg allowed "$(items "${ALLOW_DUPLICATES-}")" "$@"
 }
 
 # apply_nixpkgs_eol: the findings of the end of life of nixpkgs, today, which
@@ -65,17 +65,17 @@ rule_jq() {
 apply_nixpkgs_eol() {
   local now
   now=$(date -u +%s)
-  rule_jq "$NIXPKGS_EOL_PROGRAM" --argjson now "$now" --arg event "${GITHUB_EVENT_NAME-}" \
-    >"$FINDINGS_DIR/nixpkgs-eol.json"
+  rule_jq "${NIXPKGS_EOL_PROGRAM}" --argjson now "${now}" --arg event "${GITHUB_EVENT_NAME-}" \
+    >"${FINDINGS_DIR}/nixpkgs-eol.json"
 }
 
 # apply_rules: the findings of duplicates, and of pin form and the end of life
 # of nixpkgs unless they are off.
 apply_rules() {
-  mkdir -p -- "$FINDINGS_DIR"
-  rule_jq "$DUPLICATES_PROGRAM" >"$FINDINGS_DIR/duplicates.json"
+  mkdir -p -- "${FINDINGS_DIR}"
+  rule_jq "${DUPLICATES_PROGRAM}" >"${FINDINGS_DIR}/duplicates.json"
   if [[ ${PIN_FORM-} != false ]]; then
-    rule_jq "$PIN_FORM_PROGRAM" >"$FINDINGS_DIR/pin-form.json"
+    rule_jq "${PIN_FORM_PROGRAM}" >"${FINDINGS_DIR}/pin-form.json"
   fi
   if [[ ${NIXPKGS_EOL-} != false ]]; then
     apply_nixpkgs_eol
@@ -86,11 +86,11 @@ main() {
   local reason lock
   # The jq of the action, for lock_jq and parsed_jq.
   jq=$(tool jq) || fail "The tools step did not build jq."
-  reason=$(lock_problem "$LOCK_PATH")
-  [[ -z $reason ]] || fail "$reason"
-  lock=$(lock_file "$LOCK_PATH")
-  check_lock "$lock"
-  lock_jq "$lock" "$PARSE_PROGRAM" >"$PARSED_LOCK"
+  reason=$(lock_problem "${LOCK_PATH}")
+  [[ -z ${reason} ]] || fail "${reason}"
+  lock=$(lock_file "${LOCK_PATH}")
+  check_lock "${lock}"
+  lock_jq "${lock}" "${PARSE_PROGRAM}" >"${PARSED_LOCK}"
   apply_rules
 }
 

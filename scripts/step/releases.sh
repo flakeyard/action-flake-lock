@@ -11,17 +11,17 @@ set -euo pipefail
 # Builtins only until lib/env.sh replaces PATH, which is the job's.
 lib=${BASH_SOURCE[0]%/*}/../lib
 # shellcheck source-path=SCRIPTDIR source=../lib/env.sh
-source "$lib/env.sh"
+source "${lib}/env.sh"
 # shellcheck source=/dev/null
-source "$SHELL_LIB/report.sh"
+source "${SHELL_LIB}/report.sh"
 # shellcheck source-path=SCRIPTDIR source=../lib/tools.sh
-source "$lib/tools.sh"
+source "${lib}/tools.sh"
 # shellcheck source=/dev/null
-source "$SHELL_LIB/github/api.sh"
+source "${SHELL_LIB}/github/api.sh"
 # shellcheck source=/dev/null
-source "$SHELL_LIB/github/forms.sh"
+source "${SHELL_LIB}/github/forms.sh"
 
-readonly LOOKUPS=$STATE_DIR/releases.jsonl
+readonly LOOKUPS=${STATE_DIR}/releases.jsonl
 readonly OWNER=flakeyard
 # The upper bound of lookups in one run.
 readonly MAX_REPOSITORIES=50
@@ -53,10 +53,10 @@ readonly ERROR_PROGRAM='{repo: $repo, error: $error}'
 
 # use_token: validates and masks the token and sets up gh for github.com only.
 use_token() {
-  [[ ${TOKEN-} =~ $TOKEN_FORM ]] \
+  [[ ${TOKEN-} =~ ${TOKEN_FORM} ]] \
     || fail "Invalid github-token: expected only letters, digits, underscores, dots and hyphens."
-  echo "::add-mask::$TOKEN"
-  export GH_TOKEN=$TOKEN GH_HOST=github.com
+  echo "::add-mask::${TOKEN}"
+  export GH_TOKEN=${TOKEN} GH_HOST=github.com
   unset GH_ENTERPRISE_TOKEN GH_REPO GH_CONFIG_DIR
 }
 
@@ -64,26 +64,26 @@ use_token() {
 # standard input.
 record_releases() {
   local repo=$1
-  "$jq" -cn -L "$LOCK_MODULES" --arg repo "$repo" "$RELEASES_PROGRAM" >>"$LOOKUPS"
+  "${jq}" -cn -L "${LOCK_MODULES}" --arg repo "${repo}" "${RELEASES_PROGRAM}" >>"${LOOKUPS}"
 }
 
 # record_error REPO REASON: records that the releases of REPO were not looked
 # up, and why.
 record_error() {
   local repo=$1 reason=$2
-  "$jq" -cn --arg repo "$repo" --arg error "$reason" "$ERROR_PROGRAM" >>"$LOOKUPS"
+  "${jq}" -cn --arg repo "${repo}" --arg error "${reason}" "${ERROR_PROGRAM}" >>"${LOOKUPS}"
 }
 
 # look_up REPO: records the releases of the flakeyard repository REPO. The
 # name comes from the lock, so it is checked before it reaches the API.
 look_up() {
   local repo=$1 pages
-  if [[ ! $repo =~ $REPOSITORY_NAME_FORM ]]; then
-    record_error "$repo" "it is not the name of a repository"
-  elif pages=$(api_request POST graphql --paginate -f query="$RELEASES_QUERY" -f owner="$OWNER" -f name="$repo"); then
-    record_releases "$repo" <<<"$pages"
+  if [[ ! ${repo} =~ ${REPOSITORY_NAME_FORM} ]]; then
+    record_error "${repo}" "it is not the name of a repository"
+  elif pages=$(api_request POST graphql --paginate -f query="${RELEASES_QUERY}" -f owner="${OWNER}" -f name="${repo}"); then
+    record_releases "${repo}" <<<"${pages}"
   else
-    record_error "$repo" "the GitHub API failed, see the log"
+    record_error "${repo}" "the GitHub API failed, see the log"
   fi
 }
 
@@ -92,10 +92,10 @@ look_up() {
 look_up_all() {
   local repos=("$@") repo
   for repo in "${repos[@]:0:MAX_REPOSITORIES}"; do
-    look_up "$repo"
+    look_up "${repo}"
   done
   for repo in "${repos[@]:MAX_REPOSITORIES}"; do
-    record_error "$repo" "the lock has more than $MAX_REPOSITORIES flakeyard repositories"
+    record_error "${repo}" "the lock has more than ${MAX_REPOSITORIES} flakeyard repositories"
   done
 }
 
@@ -104,8 +104,8 @@ look_up_all() {
 apply_newer_major() {
   local now
   now=$(date -u +%s)
-  parsed_jq "$NEWER_MAJOR_PROGRAM" --slurpfile lookups "$LOOKUPS" --argjson now "$now" \
-    >"$FINDINGS_DIR/newer-major.json"
+  parsed_jq "${NEWER_MAJOR_PROGRAM}" --slurpfile lookups "${LOOKUPS}" --argjson now "${now}" \
+    >"${FINDINGS_DIR}/newer-major.json"
 }
 
 main() {
@@ -114,13 +114,13 @@ main() {
   jq=$(tool jq) || fail "The tools step did not build jq."
   gh=$(tool gh) || fail "The tools step did not build gh."
   use_token
-  export PATH=${gh%/*}:$PATH
-  listed=$(parsed_jq "$REPOSITORIES_PROGRAM")
-  [[ -z $listed ]] || mapfile -t repos <<<"$listed"
-  : >"$LOOKUPS"
+  export PATH=${gh%/*}:${PATH}
+  listed=$(parsed_jq "${REPOSITORIES_PROGRAM}")
+  [[ -z ${listed} ]] || mapfile -t repos <<<"${listed}"
+  : >"${LOOKUPS}"
   look_up_all "${repos[@]}"
-  mkdir -p -- "$FINDINGS_DIR"
-  parsed_jq "$FINDINGS_PROGRAM" --slurpfile lookups "$LOOKUPS" >"$FINDINGS_DIR/release.json"
+  mkdir -p -- "${FINDINGS_DIR}"
+  parsed_jq "${FINDINGS_PROGRAM}" --slurpfile lookups "${LOOKUPS}" >"${FINDINGS_DIR}/release.json"
   if [[ ${NEWER_MAJOR-} != false ]]; then
     apply_newer_major
   fi

@@ -11,11 +11,11 @@ given_lock duplicates
 run "duplicates: every duplicated source" ok scripts/step/parse.sh
 expect_findings duplicates 3
 # One root input: the line that fixes it, with a quoted attribute.
-expect_finding duplicates "$DUPLICATED_NIXPKGS"
+expect_finding duplicates "${DUPLICATED_NIXPKGS}"
 # A flakeyard input of two third-party flakes, at two revs and in two forms.
-expect_finding duplicates "$DUPLICATED_ATOM"
+expect_finding duplicates "${DUPLICATED_ATOM}"
 # Two root inputs, whose repositories differ only in case: no follows line.
-expect_finding duplicates "$DUPLICATED_INPUTS"
+expect_finding duplicates "${DUPLICATED_INPUTS}"
 finish
 
 action_setup
@@ -24,14 +24,14 @@ given_lock duplicates
 run "duplicates: allowed sources are not reported" ok scripts/step/parse.sh \
   ALLOW_DUPLICATES=$'github.com/o/p\n github.com/nixos/nixpkgs '
 expect_findings duplicates 1
-expect_finding duplicates "$DUPLICATED_ATOM"
+expect_finding duplicates "${DUPLICATED_ATOM}"
 finish
 
 action_setup
 given_tools
 given_lock duplicates
 run "duplicates: two dirs of one repository are two sources" ok scripts/step/parse.sh
-[[ -z $current ]] || ! findings duplicates | grep -qF github.com/o/r \
+[[ -z ${current} ]] || ! findings duplicates | grep -qF github.com/o/r \
   || report "dir-a and dir-b are reported: $(findings duplicates)"
 finish
 
