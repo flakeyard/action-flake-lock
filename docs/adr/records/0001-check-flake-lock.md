@@ -47,6 +47,11 @@ come from. Decisions of flakeyard require of it:
 - [FY-0033][fy-0033]: a stolen key of `flakeyard-bot` can create a release from
   any commit; the weekly release audit finds it, and forged releases are
   deleted.
+- [FY-0040][fy-0040]: every atom pins `lib-atom` in its own lock, and projects
+  do not declare it, so a project's lock holds one node of it per atom, at equal
+  or different revisions. A `follows` would run the atoms with a revision they
+  were not tested with, which FY-0040 rejects. The action MUST accept nested
+  entries of `github.com/flakeyard/lib-*` locked more than once.
 
 A cold fetch and evaluation of `jq.bin` from `nixos-26.05` took 7 s on a
 developer host and fetched 61 MiB of git objects; the cost on GitHub-hosted
@@ -85,6 +90,21 @@ organization ([FY-0022][fy-0022]).
    lists intentional duplicates as normalized sources, such as
    `github.com/nixos/nixpkgs` or `github.com/<owner>/<repo>?dir=<dir>`; the
    second nixpkgs of [FY-0026][fy-0026] goes there.
+
+   Nested nodes of `lib-` repositories are not counted ([FY-0040][fy-0040]). A
+   nested node is one that no input of the root names: its shortest path from
+   the root has more than one input. A `lib-` repository is one whose normalized
+   source has owner `flakeyard` and a repository name that starts with `lib-`,
+   with any `dir`; the prefix, not a list of names, decides, so a new library
+   needs no release of the action. The nodes of such a source that are inputs of
+   the root are compared among themselves only: two of them are a duplicate, and
+   one of them next to any number of nested nodes is not. A project that
+   declares `lib-atom` uses it for its own code, and the only fix of a duplicate
+   with the atoms' nodes would be the `follows` that FY-0040 rejects; listing
+   the source in `allow-duplicates` instead would also hide two root inputs of
+   it. Nested nodes of other flakeyard repositories, and of `lib-` repositories
+   of other owners, are counted as before.
+
 3. **Pin form** ([FY-0016][fy-0016]), on unless the input `pin-form` is `false`.
    Every root input is written as
    `git+https://github.com/<owner>/<repo>?ref=<ref>&rev=<40 hex digits>&shallow=1`,
@@ -202,6 +222,10 @@ repositories, and how release lookups paginate.
 - The action MUST report two distinct nodes with the same normalized source as a
   duplicate, also at the same `rev`, unless the source is listed in
   `allow-duplicates`.
+- Nodes of `github.com/flakeyard/lib-*` that are not inputs of the root MUST NOT
+  be counted as duplicates ([FY-0040][fy-0040]); inputs of the root of such a
+  source MUST be counted among themselves. The repository MUST be matched by the
+  prefix `lib-` after normalization, not by a list of names.
 - Normalization MUST ignore case of host, owner and repository, MUST remove
   `.git` and a trailing `/`, and MUST keep `dir`. Sources outside the recognised
   forms MUST be skipped, not reported.
@@ -276,11 +300,15 @@ repositories, and how release lookups paginate.
 - (+) `jq` and `gh` change only with a release of the action, and no API
   exception of [FY-0030][fy-0030] is needed.
 - (+) The action reports every problem of a lock in one run.
+- (+) A project with several atoms passes although each atom brings its own
+  `lib-atom`, without an entry in `allow-duplicates`.
 - (−) The action fetches its own nixpkgs: 61 MiB and 7 s cold on a developer
   host, unmeasured on runners.
 - (−) The pin form is not a security check: GitHub serves commits of forks under
   the URL of the parent repository, so a well-formed `rev` may come from a fork.
   Only the release rule protects flakeyard inputs.
+- (−) Two nested nodes of a `lib-` repository are never reported, also when a
+  third-party flake brings one of them.
 - (−) Sources outside the recognised forms are skipped, so a duplicate through
   FlakeHub, for example a FlakeHub nixpkgs next to a GitHub one, is missed.
 - (−) A release made with a stolen key passes the release rule until the release
@@ -323,5 +351,7 @@ repositories, and how release lookups paginate.
   https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0030-actions-workflows-and-release-bot.md
 [fy-0033]:
   https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0033-custody-of-the-release-bot-key-and-audit-of-releases.md
+[fy-0040]:
+  https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0040-share-code-through-lib-repositories.md
 [wc-adr-0002]:
   https://github.com/flakeyard/workflow-check/blob/main/docs/adr/records/0002-check-flake-lock.md

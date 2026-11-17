@@ -91,7 +91,13 @@ flakeyard input is a node whose locked source is a repository of the owner
   are compared in lower case without `.git` and a trailing `/`, and `dir` is
   part of the source. Other sources, such as GitLab, sourcehut, FlakeHub, other
   tarballs, `path` and indirect ones, are skipped. When exactly one input of the
-  root has the source, the message has the `follows` lines that fix it.
+  root has the source, the message has the `follows` lines that fix it. Nested
+  nodes of a `lib-` repository of flakeyard, `github.com/flakeyard/lib-*`, are
+  not counted ([FY-0040][fy-0040]): every atom pins `lib-atom` itself, so a
+  project's lock has one per atom. A nested node is one that no input of the
+  root names. Inputs of the root of such a repository are still compared among
+  themselves, so two of them are a duplicate, and one of them next to nested
+  nodes is not.
 - **Pin form**, on unless `pin-form` is `false`: every input of the root with a
   node of its own is written as
   `git+https://github.com/<owner>/<repo>?ref=<ref>&rev=<40 hex digits>&shallow=1`,
@@ -110,17 +116,19 @@ flakeyard input is a node whose locked source is a repository of the owner
   Every message says to switch to the next stable branch. The dates are part of
   the action: a change of the NixOS support policy is a release of it.
 - **Newer major version**, on unless `newer-major` is `false`: one warning for
-  every flakeyard input whose repository has released a major version above its
-  own, which its `ref` names or, without a `ref`, the newest release of its
-  `rev`. Only immutable releases `vX.Y.Z` that are neither drafts nor
-  pre-releases count, so a `v0` input warns once `v1.0.0` exists. The warning
-  names the newest major version with its first release and that release's date,
-  the newest release, the support of the input's major version under
-  [FY-0024][fy-0024], 6 months from the first release of the next major version,
-  and the release notes of the first release of every newer major version, which
-  have the migration guides. It reads the releases that the release rule looked
-  up, and never fails the run: an input whose releases could not be looked up
-  gets no warning, since the release rule reports it.
+  every flakeyard input of the root whose repository has released a major
+  version above its own, which its `ref` names or, without a `ref`, the newest
+  release of its `rev`. Only immutable releases `vX.Y.Z` that are neither drafts
+  nor pre-releases count, so a `v0` input warns once `v1.0.0` exists. The
+  warning names the newest major version with its first release and that
+  release's date, the newest release, the support of the input's major version
+  under [FY-0024][fy-0024], 6 months from the first release of the next major
+  version, and the release notes of the first release of every newer major
+  version, which have the migration guides. It reads the releases that the
+  release rule looked up, and never fails the run: an input whose releases could
+  not be looked up gets no warning, since the release rule reports it. A nested
+  flakeyard input gets no warning either: the flake that brings it pins it
+  ([FY-0040][fy-0040]).
 
 The action reads lock files of versions 5, 6 and 7, and fails on any other
 version and on a missing lock file.
@@ -261,6 +269,8 @@ yet. Until they are:
   https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0030-actions-workflows-and-release-bot.md
 [fy-0034]:
   https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0034-check-every-repository-with-workflow-check.md
+[fy-0040]:
+  https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0040-share-code-through-lib-repositories.md
 [atom-workspace]: https://github.com/flakeyard/atom-workspace
 [fy-0012]:
   https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0012-develop-in-container.md
