@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/flakeyard/action-flake-lock/compare/v0.3.1...v0.4.0) (2026-11-17)
+
+
+### Features
+
+* accept nested lib- repositories locked more than once ([#82](https://github.com/flakeyard/action-flake-lock/issues/82)) ([575fd72](https://github.com/flakeyard/action-flake-lock/commit/575fd7238748c43a65505650ff738b371a34e9fd))
+
 ## [0.3.1](https://github.com/flakeyard/action-flake-lock/compare/v0.3.0...v0.3.1) (2026-11-15)
 
 
