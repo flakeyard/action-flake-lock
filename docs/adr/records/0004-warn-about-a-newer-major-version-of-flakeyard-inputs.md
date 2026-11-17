@@ -68,7 +68,12 @@ What the action already has:
 
 The action has a fifth rule, the **newer major version**, on unless the input
 `newer-major` is `false`. It applies to every flakeyard input in the sense of
-ADR-0001, root or not, like the release rule.
+ADR-0001 that is an input of the root, a node that an input of the root names
+([FY-0040][fy-0040]). A nested flakeyard input is pinned by the flake that
+brings it, and the project could change it only by a `follows`, which FY-0040
+rejects for `lib-atom`: atoms pin it so that its major versions are invisible to
+projects. The flake that brings the input warns about it in its own checks. The
+release rule still checks nested inputs.
 
 The major version of an input, M, is the one its `ref` names (`vX` or `vX.Y.Z`).
 Without a `ref`, it is the major version of the newest release whose tag commit
@@ -170,10 +175,10 @@ stub of `date` sets today. Tests cover: no newer major version; N = M + 1 before
 and after the end of support; N > M + 1; a `v0` input with and without `v1.0.0`;
 a newer major version that has only pre-releases, drafts or mutable releases; an
 input without `ref`; a first release of a major version other than `vK.0.0`; the
-end of support on the 31st of a month; two nodes of one repository; a repository
-that could not be looked up, which gets "Could not verify" and no warning;
-`newer-major: false`; and more than 10 warnings of both warning rules in one
-step.
+end of support on the 31st of a month; two nodes of one repository; a nested
+input, which gets no warning; a repository that could not be looked up, which
+gets "Could not verify" and no warning; `newer-major: false`; and more than 10
+warnings of both warning rules in one step.
 
 ### Changes to ADR-0001 and ADR-0002
 
@@ -197,9 +202,10 @@ constraints stand:
 ## Constraints
 
 - With `newer-major` on, the action MUST write one warning for every flakeyard
-  input, root or not, whose repository has an immutable, published,
+  input of the root whose repository has an immutable, published,
   non-pre-release release `vX.Y.Z` of a major version above the one its `ref`
-  names, or, without a `ref`, above that of the newest release of its `rev`.
+  names, or, without a `ref`, above that of the newest release of its `rev`. It
+  MUST NOT warn about a nested flakeyard input ([FY-0040][fy-0040]).
 - Pre-releases, drafts, mutable releases and tags not of the form `vX.Y.Z` MUST
   NOT count as a newer major version.
 - The warning MUST name the input, its repository and major version, the newest
@@ -225,9 +231,9 @@ constraints stand:
 - (+) No extra API requests: the releases are read once, for both rules.
 - (+) The warning works for every flakeyard repository with releases, not only
   for atoms that ship `nix/next-major.nix`.
-- (−) A flakeyard input reached through a third-party or another flakeyard flake
-  warns as well, although the consumer can fix it only by a `follows` or by
-  waiting for that flake to update.
+- (−) A flakeyard input reached through a third-party flake does not warn,
+  although that flake may never update it; the release rule still checks it
+  ([FY-0040][fy-0040]).
 - (−) Warnings of this rule and of the end of life of nixpkgs share 10
   annotations per step; beyond them, only the job summary lists them.
 - (−) The end of support is derived from `publishedAt`, which records when the
@@ -265,3 +271,5 @@ constraints stand:
   https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0035-extract-logic-that-has-two-users.md
 [fy-0038]:
   https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0038-roll-out-the-atoms.md
+[fy-0040]:
+  https://github.com/flakeyard/decisions/blob/main/docs/adr/records/0040-share-code-through-lib-repositories.md

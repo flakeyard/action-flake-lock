@@ -1,6 +1,6 @@
-# The newer major version rule (ADR-0004, FY-0024, FY-0038): a warning for
-# every flakeyard input whose repository has released a major version above
-# its own. Reads the releases that step/releases.sh looked up, as releases of
+# The newer major version rule (ADR-0004, FY-0024, FY-0038, FY-0040): a
+# warning for every flakeyard input of the root whose repository has released
+# a major version above its own. Reads the releases that step/releases.sh looked up, as releases of
 # releases.jq makes them; the program of the rule passes the flakeyard nodes
 # and the major version that the ref of a node names, from releases.jq.
 
@@ -90,15 +90,17 @@ def warning($node; $major; $releases; $today):
   | finding($node; .);
 
 # newer_major_findings($lookups; $now; flakeyard_nodes; ref_major): the
-# warnings of every flakeyard input at $now, seconds since 1970, from $lookups
-# of {repo, releases} or {repo, error}. A repository that was not looked up
-# has none: the release rule reports it. flakeyard_nodes gives the nodes of
+# warnings of every flakeyard input of the root at $now, seconds since 1970,
+# from $lookups of {repo, releases} or {repo, error}. A nested node has none:
+# the flake that brings it pins it (FY-0040). A repository that was not looked
+# up has none: the release rule reports it. flakeyard_nodes gives the nodes of
 # the parsed lock, and ref_major the major version that the ref of a node
 # names, or null.
 def newer_major_findings($lookups; $now; flakeyard_nodes; ref_major):
   ($now | floor | strftime("%Y-%m-%d")) as $today
   | (reduce $lookups[] as $lookup ({}; .[$lookup.repo] = $lookup)) as $by_repo
   | flakeyard_nodes as $node
+  | select($node.parent == null)
   | $by_repo[$node.source.repo].releases as $releases
   | select($releases != null)
   | ($node | own_major($releases; $node | ref_major)) as $major

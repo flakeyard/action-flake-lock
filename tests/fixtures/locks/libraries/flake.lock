@@ -1,0 +1,207 @@
+{
+  "nodes": {
+    "root": {
+      "inputs": {
+        "atom-a": "atom-a",
+        "atom-b": "atom-b",
+        "atom-c": "atom-c",
+        "lib-actions": "lib-actions",
+        "lib-x": "lib-x",
+        "lib-x-copy": "lib-x_2"
+      }
+    },
+    "atom-a": {
+      "inputs": {
+        "lib-atom": "lib-atom",
+        "lib-actions": "lib-actions_2",
+        "atom-text": "atom-text",
+        "lib-foo": "lib-foo"
+      },
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "ref": "v1",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-a",
+        "ref": "v1",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "atom-b": {
+      "inputs": {
+        "lib-atom": "lib-atom_2",
+        "lib-x": "lib-x_3",
+        "atom-text": "atom-text_2",
+        "lib-foo": "lib-foo_2"
+      },
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-b",
+        "ref": "v1",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-b",
+        "ref": "v1",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "atom-c": {
+      "inputs": {
+        "lib-atom": "lib-atom_3"
+      },
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-c",
+        "ref": "v1",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-c",
+        "ref": "v1",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "lib-atom": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/lib-atom",
+        "ref": "v1",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "lib-atom_2": {
+      "locked": {
+        "type": "github",
+        "owner": "FlakeYard",
+        "repo": "Lib-Atom",
+        "rev": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    },
+    "lib-atom_3": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/lib-atom.git",
+        "ref": "v1",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "lib-actions": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/lib-actions",
+        "ref": "v0",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/lib-actions",
+        "ref": "v0",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "lib-actions_2": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/lib-actions",
+        "ref": "v0",
+        "rev": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "shallow": true
+      }
+    },
+    "lib-x": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/lib-x",
+        "ref": "v1",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/lib-x",
+        "ref": "v1",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "lib-x_2": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/lib-x",
+        "ref": "v1",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      },
+      "original": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/lib-x",
+        "ref": "v1",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "lib-x_3": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/lib-x",
+        "ref": "v1",
+        "rev": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "shallow": true
+      }
+    },
+    "atom-text": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-text",
+        "ref": "v1",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "atom-text_2": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/flakeyard/atom-text",
+        "ref": "v1",
+        "rev": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "shallow": true
+      }
+    },
+    "lib-foo": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/o/lib-foo",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    },
+    "lib-foo_2": {
+      "locked": {
+        "type": "git",
+        "url": "https://github.com/o/lib-foo",
+        "ref": "main",
+        "rev": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "shallow": true
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

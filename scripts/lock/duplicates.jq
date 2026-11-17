@@ -1,14 +1,20 @@
 # The duplicates rule (ADR-0001, FY-0017): two distinct nodes with the same
-# normalized source, also at the same rev, unless the source is allowed. Reads
-# the parsed lock of nodes.jq with the sources of sources.jq.
+# normalized source, also at the same rev, unless the source is allowed. Nested
+# nodes of lib- repositories of flakeyard do not count (FY-0040). Reads the
+# parsed lock of nodes.jq with the sources of sources.jq.
 
 # finding($input; $message): a violation of this rule.
 def finding($input; $message): {rule: "duplicates", input: $input, message: $message};
 
+# nested_library: a node of a lib- repository of flakeyard that is not an
+# input of the root. Every atom pins lib-atom itself, so a project's lock has
+# one such node per atom, at equal or different revs (FY-0040).
+def nested_library: .parent != null and .source.library;
+
 # groups($allowed): the nodes of each source that more than one node has, but
-# the sources of $allowed.
+# the sources of $allowed and nested nodes of lib- repositories.
 def groups($allowed):
-  [.nodes[] | select(.source != null)]
+  [.nodes[] | select(.source != null and (nested_library | not))]
   | group_by(.source.id)
   | map(select(length > 1 and (.[0].source.id | IN($allowed[]) | not)));
 
