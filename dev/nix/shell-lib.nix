@@ -4,17 +4,17 @@
   perSystem =
     { root, ... }:
     let
-      pin = builtins.match ".*uses: flakeyard/action-shell-lib@([0-9a-f]{40}) .*" (
+      pin = builtins.match ".*uses: flakeyard/lib-actions@([0-9a-f]{40}) .*" (
         builtins.readFile (root + "/action.yml")
       );
     in
     {
       _module.args.shellLib =
         if pin == null then
-          throw "action.yml pins no commit of flakeyard/action-shell-lib"
+          throw "action.yml pins no commit of flakeyard/lib-actions"
         else
           builtins.fetchGit {
-            url = "https://github.com/flakeyard/action-shell-lib";
+            url = "https://github.com/flakeyard/lib-actions";
             rev = builtins.head pin;
             shallow = true;
           };

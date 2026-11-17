@@ -50,8 +50,8 @@ not fail it; past the end of life, only runs of the `schedule` event fail, so
 keep a weekly scheduled run, as above. GitHub shows at most 10 annotations of
 each kind per step, so when there are more errors or warnings, the tenth of that
 kind says how many more the summary has. It has no warn-only mode. Its first
-step runs [action-shell-lib][action-shell-lib], the shell library of its other
-steps, which fails the job on a runner that the action does not support.
+step runs [lib-actions][lib-actions], the shell library of its other steps,
+which fails the job on a runner that the action does not support.
 
 ## Inputs
 
@@ -137,9 +137,9 @@ version and on a missing lock file.
 
 - A GitHub-hosted Linux runner on x86_64 or arm64, such as `ubuntu-24.04` or
   `ubuntu-24.04-arm`, on `github.com`. The first step of the action, the shell
-  library [action-shell-lib][action-shell-lib], fails the job on any other
-  runner, self-hosted ones included; GitHub Enterprise Server is rejected next.
-  Both happen before anything is built.
+  library [lib-actions][lib-actions], fails the job on any other runner,
+  self-hosted ones included; GitHub Enterprise Server is rejected next. Both
+  happen before anything is built.
 - `nix` on `PATH` with the experimental features `nix-command` and `flakes`,
   such as from [action-setup-nix][action-setup-nix]. The action does not install
   Nix. Determinate Nix and Lix are not tested.
@@ -242,7 +242,7 @@ yet. Until they are:
 [MIT](LICENSE).
 
 [action-setup-nix]: https://github.com/flakeyard/action-setup-nix
-[action-shell-lib]: https://github.com/flakeyard/action-shell-lib
+[lib-actions]: https://github.com/flakeyard/lib-actions
 [adr-0001]: docs/adr/records/0001-check-flake-lock.md
 [adr-0002]: docs/adr/records/0002-end-of-life-of-nixpkgs.md
 [adr-0004]:
