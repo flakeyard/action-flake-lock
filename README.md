@@ -180,20 +180,23 @@ same shell.
 The root [`flake.nix`](flake.nix) holds only the tools that the action runs,
 `jq` and `gh`, from one pinned nixpkgs. The checks of the repository live in
 [`dev/flake.nix`](dev/flake.nix), with its own lock, so that consumers fetch
-none of them: `markdown` (markdownlint and lychee of
+none of them: `data-formats` (yamllint, biome, taplo and check-jsonschema of
+[atom-data-formats][atom-data-formats] over the YAML, JSON and TOML files,
+`action.yml` and `renovate.json`), `markdown` (markdownlint and lychee of
 [atom-markdown][atom-markdown] over the Markdown files), `nix` (statix, deadnix
 and the relative paths hook of [atom-nix][atom-nix] over the Nix files), `shell`
 (shellcheck of [atom-shell][atom-shell] over the scripts), `text` (typos and
 editorconfig-checker of [atom-text][atom-text] over every file), `treefmt`
-(nixfmt, shfmt and prettier check the formatting), `workflows` (actionlint and
-zizmor of [atom-workflows][atom-workflows] over the workflows and `action.yml`),
-the atoms over the whole repository, `tools` ([`tools.nix`](tools.nix) records
-the store paths of the packages of the root flake) and `unit`
-([`tests/run.sh`](tests/run.sh)). The `unit` check fetches the shell library at
-the commit that [`action.yml`](action.yml) pins and gives it to the tests as
-`SHELL_LIB`, whose harness and stubs of `gh`, `date` and `sleep` they use.
-Alone, `tests/run.sh` needs `SHELL_LIB` set to a checkout of the library,
-mikefarah `yq` and `jq`, which the development shell has. Run the checks with:
+(nixfmt, shfmt, prettier and taplo check the formatting), `workflows`
+(actionlint and zizmor of [atom-workflows][atom-workflows] over the workflows
+and `action.yml`), the atoms over the whole repository, `tools`
+([`tools.nix`](tools.nix) records the store paths of the packages of the root
+flake) and `unit` ([`tests/run.sh`](tests/run.sh)). The `unit` check fetches the
+shell library at the commit that [`action.yml`](action.yml) pins and gives it to
+the tests as `SHELL_LIB`, whose harness and stubs of `gh`, `date` and `sleep`
+they use. Alone, `tests/run.sh` needs `SHELL_LIB` set to a checkout of the
+library, mikefarah `yq` and `jq`, which the development shell has. Run the
+checks with:
 
 ```sh
 nix flake check --no-update-lock-file ./dev
@@ -242,6 +245,7 @@ yet. Until they are:
 [MIT](LICENSE).
 
 [action-setup-nix]: https://github.com/flakeyard/action-setup-nix
+[atom-data-formats]: https://github.com/flakeyard/atom-data-formats
 [lib-actions]: https://github.com/flakeyard/lib-actions
 [adr-0001]: docs/adr/records/0001-check-flake-lock.md
 [adr-0002]: docs/adr/records/0002-end-of-life-of-nixpkgs.md
