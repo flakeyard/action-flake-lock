@@ -173,20 +173,22 @@ installs the git hooks each time the shell starts. The container runs
 `direnv block` before you check out a branch you do not trust, since entering
 the directory runs that branch's shell hook. Commit inside the container, whose
 Nix store has the tools of the hooks. The checks below run in it as in CI; tools
-that the shell does not have come from nixpkgs, such as `nix run nixpkgs#typos`.
+that the shell does not have come from nixpkgs, such as `nix run nixpkgs#reuse`.
 Nix on the host works as well: `direnv allow` or `nix develop ./dev` gives the
 same shell.
 
 The root [`flake.nix`](flake.nix) holds only the tools that the action runs,
 `jq` and `gh`, from one pinned nixpkgs. The checks of the repository live in
 [`dev/flake.nix`](dev/flake.nix), with its own lock, so that consumers fetch
-none of them: `nix` (statix, deadnix and the relative paths hook of
-[atom-nix][atom-nix] over the Nix files), `shell` (shellcheck of
-[atom-shell][atom-shell] over the scripts), `treefmt` (nixfmt and shfmt check
-their formatting), `workflows` (actionlint and zizmor of
-[atom-workflows][atom-workflows] over the workflows and `action.yml`), the atoms
-over the whole repository, `tools` ([`tools.nix`](tools.nix) records the store
-paths of the packages of the root flake) and `unit`
+none of them: `markdown` (markdownlint and lychee of
+[atom-markdown][atom-markdown] over the Markdown files), `nix` (statix, deadnix
+and the relative paths hook of [atom-nix][atom-nix] over the Nix files), `shell`
+(shellcheck of [atom-shell][atom-shell] over the scripts), `text` (typos and
+editorconfig-checker of [atom-text][atom-text] over every file), `treefmt`
+(nixfmt, shfmt and prettier check the formatting), `workflows` (actionlint and
+zizmor of [atom-workflows][atom-workflows] over the workflows and `action.yml`),
+the atoms over the whole repository, `tools` ([`tools.nix`](tools.nix) records
+the store paths of the packages of the root flake) and `unit`
 ([`tests/run.sh`](tests/run.sh)). The `unit` check fetches the shell library at
 the commit that [`action.yml`](action.yml) pins and gives it to the tests as
 `SHELL_LIB`, whose harness and stubs of `gh`, `date` and `sleep` they use.
@@ -205,8 +207,10 @@ a lock that passes and on one that breaks every rule, and
 [workflow-check][workflow-check] checks `dev/flake.lock` with a release of this
 action ([workflow-check ADR-0002][wc-adr-0002]), builds the checks of `./dev`,
 checks the pull request title, `renovate.json` and the release behind its preset
-tag, and reports `check / required`. Before a pull request, run prettier,
-markdownlint, typos and `reuse lint`.
+tag, and reports `check / required`; its weekly run also checks every link of
+the Markdown files and runs the audits of zizmor that need the network, with the
+apps `markdown-links` and `workflows-online`. Before a pull request, run
+`reuse lint`.
 
 The weekly scheduled run of `test.yaml` checks the end of life of nixpkgs in the
 root `flake.lock` with the action itself and in `dev/flake.lock` through
@@ -231,8 +235,7 @@ are checked by a dispatched run of `test.yaml`. The design follows
 Following [FY-0022][fy-0022], some checks of this repository are not released
 yet. Until they are:
 
-- prettier, markdownlint, typos and REUSE run locally before every pull request;
-  the atoms will provide them.
+- REUSE runs locally before every pull request; an atom will provide it.
 
 ## License
 
@@ -250,8 +253,10 @@ yet. Until they are:
 [wc-adr-0002]:
   https://github.com/flakeyard/workflow-check/blob/main/docs/adr/records/0002-check-flake-lock.md
 [workflow-check]: https://github.com/flakeyard/workflow-check
+[atom-markdown]: https://github.com/flakeyard/atom-markdown
 [atom-nix]: https://github.com/flakeyard/atom-nix
 [atom-shell]: https://github.com/flakeyard/atom-shell
+[atom-text]: https://github.com/flakeyard/atom-text
 [atom-workflows]: https://github.com/flakeyard/atom-workflows
 [workflow-release]: https://github.com/flakeyard/workflow-release
 [workflow-scorecard]: https://github.com/flakeyard/workflow-scorecard
