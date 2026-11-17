@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/flakeyard/action-flake-lock/compare/v0.4.0...v0.4.1) (2026-11-17)
+
+
+### Bug Fixes
+
+* take the shell library from lib-actions ([#85](https://github.com/flakeyard/action-flake-lock/issues/85)) ([1d49ae3](https://github.com/flakeyard/action-flake-lock/commit/1d49ae3ed4f293b098d384098b89a0598df52cf1))
+
 ## [0.4.0](https://github.com/flakeyard/action-flake-lock/compare/v0.3.1...v0.4.0) (2026-11-17)
 
 
