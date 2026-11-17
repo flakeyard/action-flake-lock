@@ -183,3 +183,24 @@ rm -- "${work}/fixtures/now"
 run "newer-major: takes the date from date" fail scripts/step/releases.sh TOKEN=ghs_x
 expect message "the test fixed no time"
 finish
+
+# nest_input: the lock of majors_lock with a node of flakeyard/atom-m at v1,
+# rev[1], that the root input in0 brings as its input atom-m.
+nest_input() {
+  local lock=${work}/workspace/flake.lock nested
+  nested=$(jq '.nodes.nested = (.nodes.in0 | .locked.ref = "v1" | .locked.rev = $rev | .original = .locked)
+    | .nodes.in0.inputs = {"atom-m": "nested"}' --arg rev "${rev[1]}" "${lock}")
+  printf '%s\n' "${nested}" >"${lock}"
+}
+
+action_setup
+given_tools
+majors_lock "atom-m|v2|${rev[2]}"
+nest_input
+run "newer-major: parse for a nested input" ok scripts/step/parse.sh
+prepared
+fixed_time "${NOW}"
+next_major_releases
+look_up_releases "a nested input has no warning; only inputs of the root have"
+expect_majors 0
+finish

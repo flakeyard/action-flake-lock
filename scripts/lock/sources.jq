@@ -8,6 +8,9 @@ def github_host: "github.com";
 # The owner of flakeyard inputs; fixed until a second organization is decided
 # (FY-0022).
 def flakeyard_owner: "flakeyard";
+# The prefix of the flakeyard repositories that hold code shared by other
+# flakeyard repositories, such as lib-atom (FY-0040).
+def library_prefix: "lib-";
 
 # The URL of a git repository: its scheme, an optional user, its host and its
 # path.
@@ -45,13 +48,16 @@ def locked_repository:
 def source_id:
   "\(github_host)/\(.owner)/\(.repo)" + (if .dir then "?dir=\(.dir)" else "" end);
 
-# source: {owner, repo, dir, id, flakeyard} of a node, or null when its
-# source is not recognised. The owner is compared in lower case.
+# source: {owner, repo, dir, id, flakeyard, library} of a node, or null when
+# its source is not recognised. The owner and repository are compared in lower
+# case; library is true for a lib- repository of flakeyard.
 def source:
   (.locked // {}) as $locked
   | first($locked | objects | locked_repository) // null
   | if . then
-      . + {dir: ($locked.dir // null), flakeyard: (.owner == flakeyard_owner)} | . + {id: source_id}
+      (.owner == flakeyard_owner) as $flakeyard
+      | . + {dir: ($locked.dir // null), flakeyard: $flakeyard}
+      | . + {library: ($flakeyard and (.repo | startswith(library_prefix))), id: source_id}
     else null end;
 
 # with_sources: the parsed lock with the source of each node.
