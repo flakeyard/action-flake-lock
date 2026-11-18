@@ -36,7 +36,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: flakeyard/action-setup-nix@b285505bb60774b9b04c26289f24f0087c69b644 # v0.1.8
+      - uses: flakeyard/action-setup-nix@7c875dfd8963bdba2bae8a226df926912b4495e3 # v0.1.9
       # The lock that consumers get, by the rules of the action itself:
       # workflow-check checks only dev/flake.lock.
       - name: The root flake.lock
@@ -57,7 +57,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: flakeyard/action-setup-nix@b285505bb60774b9b04c26289f24f0087c69b644 # v0.1.8
+      - uses: flakeyard/action-setup-nix@7c875dfd8963bdba2bae8a226df926912b4495e3 # v0.1.9
       - name: A lock that passes
         uses: $/
         with:
