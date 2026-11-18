@@ -99,7 +99,7 @@ jobs:
     with:
       needs: ${{ toJSON(needs) }}
       flake: ./dev
-      expect-checks: '["markdown","nix","shell","text","tools","treefmt","unit","workflows"]'
+      expect-checks: '["data-formats","markdown","nix","shell","text","tools","treefmt","unit","workflows"]'
       # Weekly, the apps that need the network: the links of the Markdown files
       # and the online audits of the workflows.
       apps: ${{ github.event_name == 'schedule' && '["markdown-links","workflows-online"]' || '[]' }}
